@@ -97,9 +97,9 @@ export default function CheckerChecklist() {
     setLoading(true);
     try {
       const [meRes, shiftRes, sessRes] = await Promise.all([
-        fetch("/api/users/me", { cache: "no-store" }),
-        fetch(`/api/checker/shifts?date=${todayStr()}`, { cache: "no-store" }),
-        fetch(`/api/sessions?date=${todayStr()}`, { cache: "no-store" }),
+        fetch("/apis/users/me", { cache: "no-store" }),
+        fetch(`/apis/checker/shifts?date=${todayStr()}`, { cache: "no-store" }),
+        fetch(`/apis/sessions?date=${todayStr()}`, { cache: "no-store" }),
       ]);
       const meJson = await meRes.json();
       const shiftJson = await shiftRes.json();
@@ -122,7 +122,7 @@ export default function CheckerChecklist() {
       setSessions(visible);
 
       // Validations for these sessions (one fetch with no filter — small set)
-      const valRes = await fetch("/api/checker/validations", { cache: "no-store" });
+      const valRes = await fetch("/apis/checker/validations", { cache: "no-store" });
       const valJson = await valRes.json();
       setValidations(valJson?.validations ?? []);
     } catch (e) {
@@ -168,7 +168,7 @@ export default function CheckerChecklist() {
     if (!shift) return;
     setError(null);
     try {
-      const res = await fetch(`/api/checker/shifts/${shift.id}/start`, { method: "POST" });
+      const res = await fetch(`/apis/checker/shifts/${shift.id}/start`, { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error?.message ?? data?.error ?? `HTTP ${res.status}`);
       setShift(data.shift);
@@ -182,7 +182,7 @@ export default function CheckerChecklist() {
     if (!shift) return;
     setError(null);
     try {
-      const res = await fetch(`/api/checker/shifts/${shift.id}/end`, { method: "POST" });
+      const res = await fetch(`/apis/checker/shifts/${shift.id}/end`, { method: "POST" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error?.message ?? data?.error ?? `HTTP ${res.status}`);
       setShift(data.shift);
@@ -196,7 +196,7 @@ export default function CheckerChecklist() {
     setBusyId(sessionId);
     setError(null);
     try {
-      const res = await fetch("/api/checker/validations", {
+      const res = await fetch("/apis/checker/validations", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
@@ -205,8 +205,8 @@ export default function CheckerChecklist() {
       if (!res.ok) throw new Error(data?.error?.message ?? data?.error ?? `HTTP ${res.status}`);
       // Refresh validations + shift counts
       const [valRes, shiftRes] = await Promise.all([
-        fetch("/api/checker/validations", { cache: "no-store" }),
-        fetch(`/api/checker/shifts?date=${todayStr()}`, { cache: "no-store" }),
+        fetch("/apis/checker/validations", { cache: "no-store" }),
+        fetch(`/apis/checker/shifts?date=${todayStr()}`, { cache: "no-store" }),
       ]);
       const valJson = await valRes.json();
       const shiftJson = await shiftRes.json();
@@ -214,7 +214,7 @@ export default function CheckerChecklist() {
       const myShift = (shiftJson?.shifts ?? []).find((s: Shift) => s.user_id === me?.id) ?? null;
       setShift(myShift);
       // Reload sessions in case the flag flipped status to checker_flagged
-      const sessRes = await fetch(`/api/sessions?date=${todayStr()}`, { cache: "no-store" });
+      const sessRes = await fetch(`/apis/sessions?date=${todayStr()}`, { cache: "no-store" });
       const sessJson = await sessRes.json();
       const floors = new Set((myShift?.floors ?? []).map((f: { floor_number: number }) => f.floor_number));
       setSessions((sessJson?.sessions ?? []).filter((s: Session) =>

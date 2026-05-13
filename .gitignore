@@ -1,6 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# ─── Dependencies ─────────────────────────────────────────────────────────
 fluxtrack/node_modules
 fluxtrack/.pnp
 .pnp.*
@@ -10,36 +10,55 @@ fluxtrack/.pnp
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# Stray root-level npm install (not part of any workspace; Next.js otherwise
+# infers the wrong workspace root). If you intentionally introduce a root-level
+# workspace later, remove these three lines.
+/node_modules
+/package.json
+/package-lock.json
+
+# ─── Testing ──────────────────────────────────────────────────────────────
 fluxtrack/coverage
 
-# next.js
+# ─── Next.js ──────────────────────────────────────────────────────────────
 fluxtrack/.next/
 fluxtrack/out/
 
-# production
+# ─── Production builds ────────────────────────────────────────────────────
 fluxtrack/build
 
-# misc
+# ─── OS / editor ──────────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
 *.pem
+*.log
+.vscode/
+.idea/
 
-# debug
+# ─── Debug ────────────────────────────────────────────────────────────────
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# ─── Env files (secrets) — keep .example committed ────────────────────────
 fluxtrack/.env*
+replication/.env*
+.env*
+!**/.env*.example
 
-# vercel
+# ─── Vercel ───────────────────────────────────────────────────────────────
 fluxtrack/.vercel
+.vercel
 
-# typescript
-fluxtrack/*.tsbuildinfo
+# ─── TypeScript / build caches ────────────────────────────────────────────
+**/*.tsbuildinfo
 fluxtrack/next-env.d.ts
 
+# ─── Supabase CLI local state (not the replication/ SQL + functions!) ─────
+supabase/.branches
+supabase/.temp
+**/.supabase/
 
-#replication file
+# ─── Supabase CLI replication state (SQL + functions) ──────────────────────
 /replication

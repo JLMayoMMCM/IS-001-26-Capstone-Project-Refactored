@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import RoleTopBar from "@/components/layout/role-topbar";
 import EmptyState from "@/components/ui/empty-state";
 
 type Shift = {
@@ -57,7 +56,7 @@ export default function StaffPage() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/checker/shifts?date=${date}&role=${tab}`, { cache: "no-store" });
+      const res = await fetch(`/apis/checker/shifts?date=${date}&role=${tab}`, { cache: "no-store" });
       const data = await res.json();
       setShifts(data?.shifts ?? []);
     } finally {
@@ -75,7 +74,7 @@ export default function StaffPage() {
   async function copyYesterday() {
     setBusy(true);
     try {
-      const res = await fetch("/api/checker/shifts/copy", {
+      const res = await fetch("/apis/checker/shifts/copy", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ from_date: yesterdayStr(), to_date: date, role: tab }),
@@ -101,8 +100,8 @@ export default function StaffPage() {
     // Lazy-load eligible users
     if (staffOptions.length === 0) {
       const [cRes, gRes] = await Promise.all([
-        fetch("/api/users?role=checker&active=true", { cache: "no-store" }),
-        fetch("/api/users?role=guard&active=true", { cache: "no-store" }),
+        fetch("/apis/users?role=checker&active=true", { cache: "no-store" }),
+        fetch("/apis/users?role=guard&active=true", { cache: "no-store" }),
       ]);
       const cData = await cRes.json().catch(() => ({}));
       const gData = await gRes.json().catch(() => ({}));
@@ -122,7 +121,7 @@ export default function StaffPage() {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/checker/shifts", {
+      const res = await fetch("/apis/checker/shifts", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -148,13 +147,7 @@ export default function StaffPage() {
 
   return (
     <div className="flex-1 flex flex-col fade-up">
-      <RoleTopBar
-        greetingName="Maria Santos"
-        department="Institutional Facilities Office"
-        showSettings
-      />
-
-      <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4">
+            <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4">
         <div className="card-surface p-5 lg:p-6 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="w-11 h-11 rounded-lg bg-blue-50 text-[#114b9f] flex items-center justify-center">

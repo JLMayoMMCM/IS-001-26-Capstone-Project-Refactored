@@ -28,7 +28,12 @@ export const POST = handle(async (req, ctx) => {
     day_of_week: "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
     start_time: string; end_time: string; is_active: boolean;
     room_id: string; faculty_id: string;
+    term_start_date: string | null; term_end_date: string | null;
+    section_id: string | null;
   }>;
+  if (body.term_start_date && body.term_end_date && body.term_end_date < body.term_start_date) {
+    throw new ApiError("VALIDATION", "term_end_date must be >= term_start_date");
+  }
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("schedules").update(body).eq("id", id).select().single();

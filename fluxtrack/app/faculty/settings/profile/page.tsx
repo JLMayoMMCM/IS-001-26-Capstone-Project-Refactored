@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import RoleTopBar from "@/components/layout/role-topbar";
 
 type MeResponse = {
   user?: {
@@ -31,7 +30,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/users/me")
+    fetch("/apis/users/me")
       .then((r) => r.json())
       .then((d) => setData(d))
       .finally(() => setLoading(false));
@@ -41,13 +40,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex-1 flex flex-col">
-      <RoleTopBar
-        greetingName={user?.full_name ?? "Christopher Josh L. Dellosa"}
-        department={user?.department ?? "College of Computer and Information Science"}
-        notificationCount={3}
-      />
-
-      <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 lg:space-y-5 fade-up">
+            <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 lg:space-y-5 fade-up">
         {/* Profile information card */}
         <Section
           title="Profile Information"
@@ -101,7 +94,7 @@ function DevicesCard() {
   const [newPrimary, setNewPrimary] = useState(false);
 
   const refresh = async () => {
-    const res = await fetch("/api/users/me/devices");
+    const res = await fetch("/apis/users/me/devices");
     const json = await res.json();
     if (Array.isArray(json.devices)) setDevices(json.devices);
   };
@@ -119,7 +112,7 @@ function DevicesCard() {
     }
     setBusyId("__new");
     try {
-      const res = await fetch("/api/users/me/devices", {
+      const res = await fetch("/apis/users/me/devices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -150,7 +143,7 @@ function DevicesCard() {
     if (editName.trim().length < 1) return;
     setBusyId(id);
     try {
-      const res = await fetch(`/api/users/me/devices/${id}`, {
+      const res = await fetch(`/apis/users/me/devices/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: editName.trim() }),
@@ -168,7 +161,7 @@ function DevicesCard() {
   const handleSetPrimary = async (id: string) => {
     setBusyId(id);
     try {
-      const res = await fetch(`/api/users/me/devices/${id}`, {
+      const res = await fetch(`/apis/users/me/devices/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_primary: true }),
@@ -186,7 +179,7 @@ function DevicesCard() {
     if (!confirm(`Remove "${name}"? You can re-add it later.`)) return;
     setBusyId(id);
     try {
-      const res = await fetch(`/api/users/me/devices/${id}`, { method: "DELETE" });
+      const res = await fetch(`/apis/users/me/devices/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Delete failed");
       await refresh();
     } catch (err) {

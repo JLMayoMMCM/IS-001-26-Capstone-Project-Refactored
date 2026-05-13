@@ -36,7 +36,7 @@ export default function GuardNotificationsPage() {
 
   async function refreshAssists() {
     setLoading(true);
-    const res = await fetch("/api/assists", { cache: "no-store" });
+    const res = await fetch("/apis/assists", { cache: "no-store" });
     const data = await res.json();
     setAssists(data?.assists ?? []);
     setLoading(false);
@@ -60,7 +60,7 @@ export default function GuardNotificationsPage() {
       body.incident_note = logNote.trim() || undefined;
       body.resolution_status = logResolution;
     }
-    const res = await fetch(`/api/assists/${id}/acknowledge`, {
+    const res = await fetch(`/apis/assists/${id}/acknowledge`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

@@ -87,7 +87,7 @@ export default function GuardDashboard() {
     setBusyId(id);
     setError(null);
     try {
-      const res = await fetch(`/api/assists/${id}/acknowledge`, {
+      const res = await fetch(`/apis/assists/${id}/acknowledge`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ source: "guard" }),
@@ -114,7 +114,7 @@ export default function GuardDashboard() {
     setBusyId(logFor.id);
     setError(null);
     try {
-      const res = await fetch(`/api/assists/${logFor.id}/acknowledge`, {
+      const res = await fetch(`/apis/assists/${logFor.id}/acknowledge`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

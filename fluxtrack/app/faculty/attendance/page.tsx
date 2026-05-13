@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import RoleTopBar from "@/components/layout/role-topbar";
 import EmptyState from "@/components/ui/empty-state";
 
 type Modality = "f2f" | "blended" | "online";
@@ -103,9 +102,9 @@ export default function AttendanceHistoryPage() {
     setLoading(true);
     try {
       const [meRes, sessRes, dispRes] = await Promise.all([
-        fetch("/api/users/me", { cache: "no-store" }),
-        fetch("/api/sessions", { cache: "no-store" }),
-        fetch("/api/disputes", { cache: "no-store" }),
+        fetch("/apis/users/me", { cache: "no-store" }),
+        fetch("/apis/sessions", { cache: "no-store" }),
+        fetch("/apis/disputes", { cache: "no-store" }),
       ]);
       const meJson = await meRes.json();
       const sessJson = await sessRes.json();
@@ -301,7 +300,7 @@ export default function AttendanceHistoryPage() {
     setBusy(true);
     setErrorMsg(null);
     try {
-      const res = await fetch("/api/disputes", {
+      const res = await fetch("/apis/disputes", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -315,7 +314,7 @@ export default function AttendanceHistoryPage() {
         throw new Error(data?.error?.message ?? data?.error ?? `HTTP ${res.status}`);
       }
       // Refresh disputes
-      const dispRes = await fetch("/api/disputes", { cache: "no-store" });
+      const dispRes = await fetch("/apis/disputes", { cache: "no-store" });
       const dispJson = await dispRes.json();
       setDisputes(dispJson?.disputes ?? []);
       setOpenDisputeForId(null);
@@ -330,13 +329,7 @@ export default function AttendanceHistoryPage() {
 
   return (
     <div className="flex-1 flex flex-col fade-up">
-      <RoleTopBar
-        greetingName={me?.full_name ?? "Faculty"}
-        department={me?.department ?? "—"}
-        notificationCount={0}
-      />
-
-      <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8">
+            <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8">
         <div className="card-surface p-5 lg:p-6">
           <div className="flex items-start justify-between flex-wrap gap-3 mb-5">
             <div className="flex items-center gap-3">

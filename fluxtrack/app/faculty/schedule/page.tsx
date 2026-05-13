@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import RoleTopBar from "@/components/layout/role-topbar";
 
 type Modality = "f2f" | "blended" | "online";
 type DayOfWeek = "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
@@ -115,8 +114,8 @@ export default function SchedulePage() {
     setLoading(true);
     try {
       const [meRes, schedRes] = await Promise.all([
-        fetch("/api/users/me", { cache: "no-store" }),
-        fetch("/api/schedules", { cache: "no-store" }),
+        fetch("/apis/users/me", { cache: "no-store" }),
+        fetch("/apis/schedules", { cache: "no-store" }),
       ]);
       const meJson = await meRes.json();
       const schedJson = await schedRes.json();
@@ -162,13 +161,7 @@ export default function SchedulePage() {
 
   return (
     <div className="flex-1 flex flex-col fade-up min-h-0">
-      <RoleTopBar
-        greetingName={me?.full_name ?? "Faculty"}
-        department={me?.department ?? "—"}
-        notificationCount={0}
-      />
-
-      <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 flex-1 flex flex-col min-h-0">
+            <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 flex-1 flex flex-col min-h-0">
         {/* Header card with view toggle and week nav */}
         <div className="card-surface p-5 lg:p-6">
           <div className="flex items-center gap-3 flex-wrap">

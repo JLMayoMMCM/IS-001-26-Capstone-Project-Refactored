@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import RoleTopBar from "@/components/layout/role-topbar";
 
 type Booking = {
   id: string;
@@ -33,7 +32,7 @@ export default function IFOBookingsPage() {
 
   async function refresh() {
     setLoading(true);
-    const res = await fetch("/api/bookings", { cache: "no-store" });
+    const res = await fetch("/apis/bookings", { cache: "no-store" });
     const data = await res.json();
     setBookings(data?.bookings ?? []);
     setLoading(false);
@@ -41,7 +40,7 @@ export default function IFOBookingsPage() {
 
   useEffect(() => {
     refresh();
-    fetch("/api/rooms").then((r) => r.json()).then((d) => setRooms(d?.rooms ?? []));
+    fetch("/apis/rooms").then((r) => r.json()).then((d) => setRooms(d?.rooms ?? []));
   }, []);
 
   async function submitForm(e: React.FormEvent) {
@@ -49,7 +48,7 @@ export default function IFOBookingsPage() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch("/api/bookings", {
+      const res = await fetch("/apis/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -76,7 +75,7 @@ export default function IFOBookingsPage() {
   async function cancel(bookingId: string) {
     const reason = prompt("Cancellation reason (min 3 characters):");
     if (!reason || reason.trim().length < 3) return;
-    const res = await fetch(`/api/bookings/${bookingId}`, {
+    const res = await fetch(`/apis/bookings/${bookingId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reason: reason.trim() }),
@@ -91,13 +90,7 @@ export default function IFOBookingsPage() {
 
   return (
     <div className="flex-1 flex flex-col fade-up">
-      <RoleTopBar
-        greetingName="Maria Santos"
-        department="Institutional Facilities Office"
-        showSettings
-      />
-
-      <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 lg:space-y-5">
+            <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 lg:space-y-5">
         <header className="card-surface p-5 lg:p-6 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-headline text-[#001c43]">Manual Bookings</h1>

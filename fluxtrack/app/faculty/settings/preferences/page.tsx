@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import RoleTopBar from "@/components/layout/role-topbar";
 
 const NOTIFICATION_EVENTS = [
   { key: "extension_request",  label: "Extension Requests",        desc: "When another faculty requests your room",       defaultPush: true,  defaultEmail: true,  mandatory: false },
@@ -31,8 +30,8 @@ export default function PreferencesPage() {
     setLoading(true);
     try {
       const [meRes, prefRes] = await Promise.all([
-        fetch("/api/users/me", { cache: "no-store" }),
-        fetch("/api/users/me/preferences", { cache: "no-store" }),
+        fetch("/apis/users/me", { cache: "no-store" }),
+        fetch("/apis/users/me/preferences", { cache: "no-store" }),
       ]);
       const meJson = await meRes.json();
       const prefJson = await prefRes.json();
@@ -61,7 +60,7 @@ export default function PreferencesPage() {
     setSaving(true);
     setErrorMsg(null);
     try {
-      const res = await fetch("/api/users/me/preferences", {
+      const res = await fetch("/apis/users/me/preferences", {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ preferences: prefs }),
@@ -79,13 +78,7 @@ export default function PreferencesPage() {
 
   return (
     <div className="flex-1 flex flex-col">
-      <RoleTopBar
-        greetingName={me?.full_name ?? "Faculty"}
-        department={me?.department ?? "—"}
-        notificationCount={0}
-      />
-
-      <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 lg:space-y-5 fade-up">
+            <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 lg:space-y-5 fade-up">
         {/* Notification preferences */}
         <section className="card-surface p-5 lg:p-6">
           <header className="flex items-center gap-2.5 text-[#001c43] mb-5">

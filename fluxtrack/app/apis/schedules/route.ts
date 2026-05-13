@@ -13,6 +13,9 @@ export const GET = handle(async (req) => {
   const user = await getCurrentUser();
   const url = new URL(req.url);
   const day = url.searchParams.get("day");
+  const includeArchived = url.searchParams.get("include_archived") === "1";
+  const isAdmin =
+    user.role === "ifo_admin" || user.role === "hr_admin" || user.role === "system_admin";
 
   const supabase = await createClient();
 
@@ -21,10 +24,18 @@ export const GET = handle(async (req) => {
     .select(
       `id, course_code, course_name, section, enrolled_count,
        scheduled_modality, day_of_week, start_time, end_time,
-       academic_term, is_active, faculty_id,
+       academic_term, is_active, faculty_id, room_id,
+       term_start_date, term_end_date, section_id,
+       archived_at, archived_by, archive_reason,
+       replaced_by_schedule_id, replaces_schedule_id,
+       faculty:users!schedules_faculty_id_fkey(full_name, email),
        room:rooms(id, room_code, building, floor_number)`,
-    )
-    .eq("is_active", true);
+    );
+
+  // Only admins may opt into seeing archived rows.
+  if (!(isAdmin && includeArchived)) {
+    query = query.eq("is_active", true);
+  }
 
   if (day === "today") {
     const dow = dayOfWeekKey();

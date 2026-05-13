@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import RoleTopBar from "@/components/layout/role-topbar";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/use-active-session";
 
 type Modality = "f2f" | "blended" | "online";
@@ -80,7 +79,9 @@ export default function FacultyDashboard() {
 
   // Modal state
   const [modality, setModality] = useState<Modality>("f2f");
-  const [photoCaptured, setPhotoCaptured] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
   const [teamsLink, setTeamsLink] = useState("");
   const [extensionMinutes, setExtensionMinutes] = useState<15 | 30>(15);
   const [extensionReason, setExtensionReason] = useState("");
@@ -106,12 +107,12 @@ export default function FacultyDashboard() {
     try {
       const today = new Date().toISOString().slice(0, 10);
       const [meRes, schedRes, sessRes, activityRes] = await Promise.all([
-        fetch("/api/users/me", { cache: "no-store" }),
-        fetch("/api/schedules?day=today", { cache: "no-store" }),
-        fetch(`/api/sessions?date=${today}`, { cache: "no-store" }),
+        fetch("/apis/users/me", { cache: "no-store" }),
+        fetch("/apis/schedules?day=today", { cache: "no-store" }),
+        fetch(`/apis/sessions?date=${today}`, { cache: "no-store" }),
         // Recent activity: most-recent sessions across all dates (RLS scopes
         // to faculty's own). The API already orders by session_date desc + actual_start desc.
-        fetch("/api/sessions", { cache: "no-store" }),
+        fetch("/apis/sessions", { cache: "no-store" }),
       ]);
       const meData = await meRes.json();
       const schedData = await schedRes.json();
@@ -204,7 +205,9 @@ export default function FacultyDashboard() {
   const openCheckin = (sessionId: string, scheduleId: string, mod: Modality) => {
     setActionTarget({ sessionId, scheduleId });
     setModality(mod);
-    setPhotoCaptured(false);
+    setPhotoFile(null);
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    setPhotoPreviewUrl(null);
     setTeamsLink("");
     setErrorMsg(null);
     setModal("checkin");
@@ -240,6 +243,9 @@ export default function FacultyDashboard() {
     setModal(null);
     setBusy(false);
     setErrorMsg(null);
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    setPhotoFile(null);
+    setPhotoPreviewUrl(null);
   };
 
   function showToast(msg: string) {
@@ -259,18 +265,33 @@ export default function FacultyDashboard() {
     return data as T;
   }
 
+  async function uploadPhoto(sessionId: string, file: File): Promise<string> {
+    const fd = new FormData();
+    fd.append("session_id", sessionId);
+    fd.append("file", file);
+    const res = await fetch("/apis/photos/upload", { method: "POST", body: fd });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data?.error?.message ?? data?.error ?? `HTTP ${res.status}`);
+    }
+    return data.storage_path as string;
+  }
+
   // ─── Submit handlers ───────────────────────────────────────────────────────
   async function handleStart() {
     if (!actionTarget) return;
     setBusy(true);
     setErrorMsg(null);
     try {
-      await api(`/api/sessions/${actionTarget.sessionId}/start`, {
+      let photoStoragePath: string | undefined;
+      if ((modality === "f2f" || modality === "blended") && photoFile) {
+        photoStoragePath = await uploadPhoto(actionTarget.sessionId, photoFile);
+      }
+      await api(`/apis/sessions/${actionTarget.sessionId}/start`, {
         method: "POST",
         body: JSON.stringify({
           modality,
-          // demo: photo upload not wired; we send a stable placeholder path for f2f/blended
-          photo_storage_path: photoCaptured ? `demo/${actionTarget.sessionId}.jpg` : undefined,
+          photo_storage_path: photoStoragePath,
           teams_link: teamsLink || undefined,
           self_declared_on_campus: true,
           wlan_on_campus: true,
@@ -291,7 +312,7 @@ export default function FacultyDashboard() {
     setBusy(true);
     setErrorMsg(null);
     try {
-      await api(`/api/sessions/${actionTarget.sessionId}/end`, { method: "POST" });
+      await api(`/apis/sessions/${actionTarget.sessionId}/end`, { method: "POST" });
       await refreshData();
       closeModal();
       showToast("Session ended.");
@@ -307,7 +328,7 @@ export default function FacultyDashboard() {
     setBusy(true);
     setErrorMsg(null);
     try {
-      await api(`/api/sessions/${actionTarget.sessionId}/extension`, {
+      await api(`/apis/sessions/${actionTarget.sessionId}/extension`, {
         method: "POST",
         body: JSON.stringify({ requested_minutes: extensionMinutes }),
       });
@@ -326,7 +347,7 @@ export default function FacultyDashboard() {
     setBusy(true);
     setErrorMsg(null);
     try {
-      await api(`/api/sessions/${actionTarget.sessionId}/en-route`, {
+      await api(`/apis/sessions/${actionTarget.sessionId}/en-route`, {
         method: "POST",
         body: JSON.stringify({ eta_minutes: etaMinutes, reason: enRouteReason }),
       });
@@ -347,7 +368,7 @@ export default function FacultyDashboard() {
       const room_id = currentItem?.schedule.room?.id;
       if (!room_id) throw new Error("No room context for assist.");
       const types = assistTypes.length > 0 ? assistTypes : ["facility"];
-      await api("/api/assists", {
+      await api("/apis/assists", {
         method: "POST",
         body: JSON.stringify({
           room_id,
@@ -375,12 +396,7 @@ export default function FacultyDashboard() {
 
   return (
     <div className="flex-1 flex flex-col fade-up min-h-0">
-      <RoleTopBar
-        greetingName={me?.full_name ?? "Faculty"}
-        department={me?.department ?? "—"}
-      />
-
-      <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 grid grid-cols-12 gap-4 lg:gap-5 flex-1 lg:min-h-0">
+            <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 grid grid-cols-12 gap-4 lg:gap-5 flex-1 lg:min-h-0">
         {/* ── LEFT COLUMN ── */}
         <div className="col-span-12 lg:col-span-4 xl:col-span-3 flex flex-col gap-4 lg:gap-5 lg:min-h-0">
           <section className="card-surface overflow-hidden lg:flex-1 lg:flex lg:flex-col lg:min-h-0">
@@ -647,12 +663,35 @@ export default function FacultyDashboard() {
                   ))}
                 </div>
                 {(modality === "f2f" || modality === "blended") && (
-                  <button
-                    onClick={() => setPhotoCaptured((v) => !v)}
-                    className={`w-full mb-3 py-3 rounded-xl text-[12.5px] font-bold border-2 ${photoCaptured ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-dashed border-slate-300 text-slate-500"}`}
-                  >
-                    {photoCaptured ? "✓ Classroom photo captured (demo)" : "Tap to capture classroom photo"}
-                  </button>
+                  <div className="mb-3">
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] ?? null;
+                        if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+                        setPhotoFile(f);
+                        setPhotoPreviewUrl(f ? URL.createObjectURL(f) : null);
+                      }}
+                    />
+                    <button
+                      onClick={() => photoInputRef.current?.click()}
+                      className={`w-full py-3 rounded-xl text-[12.5px] font-bold border-2 ${photoFile ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-dashed border-slate-300 text-slate-500"}`}
+                    >
+                      {photoFile ? `✓ ${photoFile.name} (${Math.round(photoFile.size / 1024)} KB)` : "Tap to capture classroom photo"}
+                    </button>
+                    {photoPreviewUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={photoPreviewUrl}
+                        alt="Classroom photo preview"
+                        className="mt-2 w-full rounded-xl border border-slate-200 object-cover max-h-40"
+                      />
+                    )}
+                  </div>
                 )}
                 {(modality === "blended" || modality === "online") && (
                   <input

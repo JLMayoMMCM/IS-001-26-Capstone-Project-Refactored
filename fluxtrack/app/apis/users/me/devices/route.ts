@@ -29,12 +29,13 @@ function validateMacHint(value: unknown): string | null {
   return value.trim();
 }
 
-function validateType(value: unknown): string {
+type DeviceType = "laptop" | "tablet" | "phone" | "desktop" | "other";
+function validateType(value: unknown): DeviceType {
   if (value === undefined || value === null) return "laptop";
   if (typeof value !== "string" || !ALLOWED_TYPES.has(value)) {
     throw new ApiError("VALIDATION", "device_type must be one of: laptop, tablet, phone, desktop, other");
   }
-  return value;
+  return value as DeviceType;
 }
 
 export const GET = handle(async () => {

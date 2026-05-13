@@ -47,7 +47,7 @@ export const POST = handle(async (req, ctx) => {
   if (!startTime) throw new ApiError("INTERNAL", "Schedule missing start_time");
 
   const declaredAt = nowUtc();
-  const scheduledStart = combineDateTime(ses.session_date, startTime).toISOString();
+  const scheduledStart = combineDateTime(ses.session_date, startTime);
   const holdExpiresAt = addMinutesIso(scheduledStart, body.eta_minutes + EN_ROUTE_GRACE_MIN);
 
   const { data: enRow, error: insErr } = await supabase

@@ -42,7 +42,7 @@ export default function AdminUsersPage() {
 
   async function refresh() {
     setLoading(true);
-    const url = filter === "all" ? "/api/users" : `/api/users?role=${filter}`;
+    const url = filter === "all" ? "/apis/users" : `/apis/users?role=${filter}`;
     const res = await fetch(url, { cache: "no-store" });
     const data = await res.json();
     setUsers(data?.users ?? []);
@@ -54,7 +54,7 @@ export default function AdminUsersPage() {
   async function createUser(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
-    const res = await fetch("/api/users", {
+    const res = await fetch("/apis/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -77,7 +77,7 @@ export default function AdminUsersPage() {
   }
 
   async function toggleActive(u: User) {
-    const res = await fetch(`/api/users/${u.id}`, {
+    const res = await fetch(`/apis/users/${u.id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ is_active: !u.is_active }),
@@ -93,7 +93,7 @@ export default function AdminUsersPage() {
   async function changeRole(u: User, role: Role) {
     if (role === u.role) return;
     if (!confirm(`Change ${u.full_name} from ${u.role} to ${role}?`)) return;
-    const res = await fetch(`/api/users/${u.id}`, {
+    const res = await fetch(`/apis/users/${u.id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ role }),

@@ -23,7 +23,7 @@ export default function HRExportsPage() {
 
   async function refresh() {
     setLoading(true);
-    const res = await fetch("/api/hr/exports", { cache: "no-store" });
+    const res = await fetch("/apis/hr/exports", { cache: "no-store" });
     const data = await res.json();
     setExports(data?.exports ?? []);
     setLoading(false);
@@ -37,7 +37,7 @@ export default function HRExportsPage() {
     setCreating(true);
     setLatestUrl(null);
     try {
-      const res = await fetch("/api/hr/exports", {
+      const res = await fetch("/apis/hr/exports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

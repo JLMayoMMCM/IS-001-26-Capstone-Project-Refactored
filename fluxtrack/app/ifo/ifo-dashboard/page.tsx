@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import RoleTopBar from "@/components/layout/role-topbar";
 import EmptyState from "@/components/ui/empty-state";
 import { useRoomPolling, type RoomStatusRow } from "@/hooks/use-room-polling";
 
@@ -61,7 +60,7 @@ export default function IFODashboard() {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/sessions/${detail.current_session_id}/end?force=true`, {
+      const res = await fetch(`/apis/sessions/${detail.current_session_id}/end?force=true`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ reason: forceReason || "IFO force-end" }),
@@ -80,13 +79,7 @@ export default function IFODashboard() {
 
   return (
     <div className="flex-1 flex flex-col fade-up">
-      <RoleTopBar
-        greetingName="Maria Santos"
-        department="Institutional Facilities Office"
-        showSettings
-      />
-
-      <div className="px-4 sm:px-6 lg:px-8 grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-5">
+            <div className="px-4 sm:px-6 lg:px-8 grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-5">
         {(["active", "delayed", "no_show", "available"] as DisplayBucket[]).map((s) => (
           <button
             key={s}

@@ -44,7 +44,7 @@ export const PATCH = handle(async (req, ctx) => {
     if (typeof body.device_type !== "string" || !ALLOWED_TYPES.has(body.device_type)) {
       throw new ApiError("VALIDATION", "device_type invalid");
     }
-    update.device_type = body.device_type;
+    update.device_type = body.device_type as "laptop" | "tablet" | "phone" | "desktop" | "other";
   }
   if (body.is_primary !== undefined) {
     update.is_primary = body.is_primary === true;

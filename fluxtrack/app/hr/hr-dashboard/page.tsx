@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import RoleTopBar from "@/components/layout/role-topbar";
 import EmptyState from "@/components/ui/empty-state";
 import { useRealtimeChannel } from "@/hooks/use-realtime-channel";
 
@@ -106,16 +105,22 @@ export default function HRDashboard() {
       if (dept !== "All Departments") summaryParams.set("dept", dept);
 
       const [meRes, recordsRes, summaryRes] = await Promise.all([
-        fetch("/api/users/me", { cache: "no-store" }),
-        fetch(`/api/hr/records?${params.toString()}`, { cache: "no-store" }),
-        fetch(`/api/hr/summary?${summaryParams.toString()}`, { cache: "no-store" }),
+        fetch("/apis/users/me", { cache: "no-store" }),
+        fetch(`/apis/hr/records?${params.toString()}`, { cache: "no-store" }),
+        fetch(`/apis/hr/summary?${summaryParams.toString()}`, { cache: "no-store" }),
       ]);
-      const meJson = await meRes.json();
-      const recordsJson = await recordsRes.json();
-      const summaryJson = await summaryRes.json();
+      const meJson = await meRes.json().catch(() => null);
+      const recordsJson = await recordsRes.json().catch(() => null);
+      const summaryJson = await summaryRes.json().catch(() => null);
       setMe(meJson?.user ?? null);
-      setRecords(recordsJson?.records ?? []);
-      setSummary(summaryJson ?? null);
+      setRecords(recordsRes.ok ? (recordsJson?.records ?? []) : []);
+      // Only accept summary payloads that look like Summary (have total_records).
+      const isSummary =
+        summaryRes.ok &&
+        summaryJson &&
+        typeof summaryJson === "object" &&
+        typeof (summaryJson as { total_records?: unknown }).total_records === "number";
+      setSummary(isSummary ? (summaryJson as Summary) : null);
       setLastUpdatedMs(Date.now());
     } finally {
       setLoading(false);
@@ -153,13 +158,7 @@ export default function HRDashboard() {
 
   return (
     <div className="flex-1 flex flex-col fade-up">
-      <RoleTopBar
-        greetingName={me?.full_name ?? "HR"}
-        department={me?.department ?? "Human Resources"}
-        showSettings
-      />
-
-      <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 lg:space-y-5">
+            <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 lg:space-y-5">
         {/* Period header */}
         <section
           className="rounded-lg lg:rounded-xl p-5 lg:p-6 flex items-start justify-between flex-wrap gap-4 relative overflow-hidden"
@@ -200,29 +199,30 @@ export default function HRDashboard() {
           </div>
         </section>
 
-        {/* Stat cards (driven by /api/hr/summary) */}
+        {/* Stat cards (driven by /apis/hr/summary). Every numeric read is
+            defensive — a partial response or error body must not crash the page. */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
           <StatCard
             label="Total Hours Logged"
-            value={summary ? summary.total_hours.toFixed(1) : "—"}
+            value={typeof summary?.total_hours === "number" ? summary.total_hours.toFixed(1) : "—"}
             valueSuffix="hrs"
-            delta={summary && summary.total_records > 0 ? `${summary.total_records} records` : undefined}
+            delta={(summary?.total_records ?? 0) > 0 ? `${summary?.total_records} records` : undefined}
             accent="#3b82f6"
             icon={<ClockIcon />}
             loading={loading}
           />
           <StatCard
             label="Modality Drift"
-            value={summary ? summary.modality_drift_pct.toFixed(1) : "—"}
+            value={typeof summary?.modality_drift_pct === "number" ? summary.modality_drift_pct.toFixed(1) : "—"}
             valueSuffix="%"
-            delta={summary ? `${summary.drift_session_count} sessions with mismatch` : undefined}
+            delta={summary ? `${summary.drift_session_count ?? 0} sessions with mismatch` : undefined}
             accent="#f97316"
             icon={<TrendIcon />}
             loading={loading}
           />
           <StatCard
             label="No-Show Sessions"
-            value={summary ? String(summary.no_show_count) : "—"}
+            value={typeof summary?.no_show_count === "number" ? String(summary.no_show_count) : "—"}
             valueSuffix="sessions"
             accent="#ef4444"
             icon={<AlertIcon />}
@@ -230,10 +230,10 @@ export default function HRDashboard() {
           />
           <StatCard
             label="Compliance Rate"
-            value={summary ? summary.compliance_pct.toFixed(1) : "—"}
+            value={typeof summary?.compliance_pct === "number" ? summary.compliance_pct.toFixed(1) : "—"}
             valueSuffix="%"
-            delta={summary && summary.compliance_pct >= 90 ? "Above target" : undefined}
-            deltaPositive={summary && summary.compliance_pct >= 90 ? true : false}
+            delta={(summary?.compliance_pct ?? 0) >= 90 ? "Above target" : undefined}
+            deltaPositive={(summary?.compliance_pct ?? 0) >= 90}
             accent="#10b981"
             icon={<ShieldIcon />}
             loading={loading}

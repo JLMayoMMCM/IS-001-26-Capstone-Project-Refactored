@@ -31,7 +31,7 @@ export default function PayrollPeriodsPage() {
 
   async function refresh() {
     setLoading(true);
-    const res = await fetch("/api/hr/payroll", { cache: "no-store" });
+    const res = await fetch("/apis/hr/payroll", { cache: "no-store" });
     const data = await res.json();
     setPeriods(data?.periods ?? []);
     setLoading(false);
@@ -41,7 +41,7 @@ export default function PayrollPeriodsPage() {
 
   async function createPeriod(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch("/api/hr/payroll", {
+    const res = await fetch("/apis/hr/payroll", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -58,7 +58,7 @@ export default function PayrollPeriodsPage() {
 
   async function finalize(period: Period, stage: "soft" | "hard") {
     if (stage === "hard" && !confirm(`Hard-lock "${period.name}"? This is irreversible.`)) return;
-    const res = await fetch(`/api/hr/payroll/${period.id}/finalize`, {
+    const res = await fetch(`/apis/hr/payroll/${period.id}/finalize`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stage }),

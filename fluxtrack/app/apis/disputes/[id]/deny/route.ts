@@ -16,8 +16,9 @@ export const POST = handle(async (req, ctx) => {
   const { id } = await (ctx as Ctx).params;
   const { decision_note } = (await req.json()) as { decision_note?: string };
 
-  if (!decision_note || decision_note.trim().length < 10) {
-    throw new ApiError("VALIDATION", "decision_note required (min 10 chars)");
+  // BR-IFO: decision_note required, >= 20 chars (matches DB CHECK).
+  if (!decision_note || decision_note.trim().length < 20) {
+    throw new ApiError("VALIDATION", "decision_note required (min 20 chars)");
   }
 
   const supabase = await createClient();

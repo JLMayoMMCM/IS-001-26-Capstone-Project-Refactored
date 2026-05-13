@@ -57,7 +57,7 @@ export default function HRRecordsPage() {
       ...(filters.q ? { q: filters.q } : {}),
       limit: "100",
     });
-    const res = await fetch(`/api/hr/records?${params}`, { cache: "no-store" });
+    const res = await fetch(`/apis/hr/records?${params}`, { cache: "no-store" });
     const data = await res.json();
     setRecords(data?.records ?? []);
     setTotal(data?.total ?? 0);

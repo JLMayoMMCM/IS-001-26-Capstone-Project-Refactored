@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { handle, ApiError } from "@/lib/api/errors";
 import { getCurrentUser } from "@/lib/auth/get-session";
 import { auditLog, getClientIp } from "@/lib/audit/log";
 
-type Channel = { push: boolean; email: boolean };
+type Channel = { push: boolean; in_app: boolean };
 type Prefs = Record<string, Channel>;
 
 const ALLOWED_KEYS = new Set([
@@ -14,6 +14,10 @@ const ALLOWED_KEYS = new Set([
   "late_hold_expiring",
   "dispute_updates",
   "schedule_changes",
+  "assist_acknowledged",
+  "session_force_ended",
+  "schedule_moved",
+  "schedule_archived",
 ]);
 
 function validate(input: unknown): Prefs {
@@ -23,47 +27,58 @@ function validate(input: unknown): Prefs {
   const prefs = input as Record<string, unknown>;
   const out: Prefs = {};
   for (const [key, val] of Object.entries(prefs)) {
-    if (!ALLOWED_KEYS.has(key)) continue; // silently drop unknown keys
+    if (!ALLOWED_KEYS.has(key)) continue;
     if (!val || typeof val !== "object") {
       throw new ApiError("VALIDATION", `preferences.${key} must be an object`);
     }
     const entry = val as Record<string, unknown>;
-    if (typeof entry.push !== "boolean" || typeof entry.email !== "boolean") {
-      throw new ApiError("VALIDATION", `preferences.${key}.push and .email must be booleans`);
+    const push = entry.push;
+    const inApp = "in_app" in entry ? entry.in_app : entry.email;
+    if (typeof push !== "boolean" || typeof inApp !== "boolean") {
+      throw new ApiError("VALIDATION", `preferences.${key}.push and .in_app must be booleans`);
     }
-    out[key] = { push: entry.push, email: entry.email };
+    out[key] = { push, in_app: inApp };
   }
   return out;
 }
 
-/**
- * GET  /api/users/me/preferences  — current user's notification preferences
- * PUT  /api/users/me/preferences  — replace the preferences blob
- */
+// GET /apis/users/me/preferences — current user's notification preferences.
+// Aggregates rows from public.notification_preferences into a flat record.
 export const GET = handle(async () => {
   const user = await getCurrentUser();
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("users")
-    .select("notification_preferences")
-    .eq("id", user.id)
-    .single();
+  const svc = createServiceClient();
+  const { data, error } = await svc
+    .from("notification_preferences")
+    .select("event_type, push_enabled, in_app_enabled")
+    .eq("user_id", user.id);
   if (error) throw new ApiError("INTERNAL", error.message);
-  return NextResponse.json({ preferences: data?.notification_preferences ?? {} });
+  const out: Prefs = {};
+  for (const row of data ?? []) {
+    out[row.event_type] = { push: row.push_enabled, in_app: row.in_app_enabled };
+  }
+  return NextResponse.json({ preferences: out });
 });
 
+// PUT /apis/users/me/preferences — upsert preferences for the current user.
 export const PUT = handle(async (req) => {
   const user = await getCurrentUser();
   const body = (await req.json()) as { preferences?: unknown };
   const cleaned = validate(body?.preferences);
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("users")
-    .update({ notification_preferences: cleaned })
-    .eq("id", user.id);
+  const svc = createServiceClient();
+  const rows = Object.entries(cleaned).map(([event_type, ch]) => ({
+    user_id: user.id,
+    event_type,
+    push_enabled: ch.push,
+    in_app_enabled: ch.in_app,
+  }));
 
-  if (error) throw new ApiError("INTERNAL", error.message);
+  if (rows.length > 0) {
+    const { error } = await svc
+      .from("notification_preferences")
+      .upsert(rows, { onConflict: "user_id,event_type" });
+    if (error) throw new ApiError("INTERNAL", error.message);
+  }
 
   await auditLog({
     event_type: "USER_PREFERENCES_UPDATED",

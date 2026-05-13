@@ -12,7 +12,7 @@ export default function CheckerAssistsPage() {
     setBusyId(id);
     setError(null);
     try {
-      const res = await fetch(`/api/assists/${id}/acknowledge`, {
+      const res = await fetch(`/apis/assists/${id}/acknowledge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ source: "checker" }),
