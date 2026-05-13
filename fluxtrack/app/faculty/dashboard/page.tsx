@@ -79,9 +79,10 @@ export default function FacultyDashboard() {
 
   // Modal state
   const [modality, setModality] = useState<Modality>("f2f");
+  // Captured classroom photo. Faculty must take a fresh shot with the device
+  // camera — uploads from disk are disallowed (proof-of-presence intent).
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
-  const photoInputRef = useRef<HTMLInputElement | null>(null);
   const [teamsLink, setTeamsLink] = useState("");
   const [extensionMinutes, setExtensionMinutes] = useState<15 | 30>(15);
   const [extensionReason, setExtensionReason] = useState("");
@@ -105,7 +106,10 @@ export default function FacultyDashboard() {
   const refreshData = useCallback(async () => {
     setLoading(true);
     try {
-      const today = new Date().toISOString().slice(0, 10);
+      // Manila-local YYYY-MM-DD. toISOString() returns UTC, which is the
+      // previous day for the first 8 hours of any Manila day — that bug used
+      // to leave the "Today's Schedule" panel empty every morning until 8 AM.
+      const today = manilaDateKey(new Date());
       const [meRes, schedRes, sessRes, activityRes] = await Promise.all([
         fetch("/apis/users/me", { cache: "no-store" }),
         fetch("/apis/schedules?day=today", { cache: "no-store" }),
@@ -664,33 +668,19 @@ export default function FacultyDashboard() {
                 </div>
                 {(modality === "f2f" || modality === "blended") && (
                   <div className="mb-3">
-                    <input
-                      ref={photoInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      capture="environment"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0] ?? null;
+                    <CameraCapture
+                      capturedUrl={photoPreviewUrl}
+                      onCapture={(file) => {
                         if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
-                        setPhotoFile(f);
-                        setPhotoPreviewUrl(f ? URL.createObjectURL(f) : null);
+                        setPhotoFile(file);
+                        setPhotoPreviewUrl(file ? URL.createObjectURL(file) : null);
+                      }}
+                      onRetake={() => {
+                        if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+                        setPhotoFile(null);
+                        setPhotoPreviewUrl(null);
                       }}
                     />
-                    <button
-                      onClick={() => photoInputRef.current?.click()}
-                      className={`w-full py-3 rounded-xl text-[12.5px] font-bold border-2 ${photoFile ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-dashed border-slate-300 text-slate-500"}`}
-                    >
-                      {photoFile ? `✓ ${photoFile.name} (${Math.round(photoFile.size / 1024)} KB)` : "Tap to capture classroom photo"}
-                    </button>
-                    {photoPreviewUrl && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={photoPreviewUrl}
-                        alt="Classroom photo preview"
-                        className="mt-2 w-full rounded-xl border border-slate-200 object-cover max-h-40"
-                      />
-                    )}
                   </div>
                 )}
                 {(modality === "blended" || modality === "online") && (
@@ -939,6 +929,212 @@ function CheckinCard({
       </div>
     </section>
   );
+}
+
+// ─── Live camera capture ────────────────────────────────────────────────────
+// Replaces the old <input type="file" capture="environment"> flow. We open the
+// device camera via getUserMedia, show a live preview, and grab a JPEG frame
+// from a hidden canvas when the user taps Capture. The captured frame is
+// wrapped in a File so the existing /apis/photos/upload endpoint (which
+// expects multipart with a File) keeps working unchanged.
+//
+// Photo-from-disk uploads are intentionally NOT supported: the photo is the
+// proof-of-presence artifact for an in-room class, so a stale or borrowed
+// image would defeat the purpose of capturing one at all.
+function CameraCapture({
+  capturedUrl,
+  onCapture,
+  onRetake,
+}: {
+  capturedUrl: string | null;
+  onCapture: (file: File) => void;
+  onRetake: () => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [starting, setStarting] = useState(true);
+  const [busy, setBusy] = useState(false);
+
+  const stopStream = useCallback(() => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+  }, []);
+
+  const startStream = useCallback(async () => {
+    setError(null);
+    setStarting(true);
+    // No mediaDevices = insecure context (http://) or unsupported browser.
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      setError("Camera API unavailable. Use a recent browser over HTTPS (or http://localhost).");
+      setStarting(false);
+      return;
+    }
+    try {
+      // Prefer the back camera on phones (environment), but fall back to any
+      // device if the constraint isn't satisfiable — laptops only expose a
+      // front-facing webcam, which is fine for proof-of-presence.
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
+      streamRef.current = stream;
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = stream;
+        // play() can reject if the document hasn't been interacted with yet —
+        // the modal opens via a click, so this should always succeed, but
+        // swallow the rejection so a transient error doesn't surface as fatal.
+        try { await video.play(); } catch { /* noop */ }
+      }
+    } catch (e) {
+      const err = e as DOMException;
+      if (err.name === "NotAllowedError" || err.name === "SecurityError") {
+        setError("Camera permission was denied. Allow access in your browser site settings, then retry.");
+      } else if (err.name === "NotFoundError" || err.name === "OverconstrainedError") {
+        setError("No camera found on this device.");
+      } else if (err.name === "NotReadableError") {
+        setError("Camera is in use by another app. Close it and retry.");
+      } else {
+        setError(err.message || "Could not start the camera.");
+      }
+    } finally {
+      setStarting(false);
+    }
+  }, []);
+
+  // Start the stream while showing the live view, stop it once a frame has
+  // been captured (so the camera light goes off and battery isn't drained).
+  useEffect(() => {
+    if (!capturedUrl) {
+      startStream();
+    } else {
+      stopStream();
+    }
+    return () => stopStream();
+  }, [capturedUrl, startStream, stopStream]);
+
+  async function handleCapture() {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+    const w = video.videoWidth;
+    const h = video.videoHeight;
+    if (!w || !h) {
+      setError("Camera not ready yet — wait a moment and try again.");
+      return;
+    }
+    setBusy(true);
+    try {
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas unsupported");
+      ctx.drawImage(video, 0, 0, w, h);
+      const blob: Blob | null = await new Promise((resolve) =>
+        canvas.toBlob((b) => resolve(b), "image/jpeg", 0.85),
+      );
+      if (!blob) {
+        setError("Could not capture frame.");
+        return;
+      }
+      const file = new File([blob], `classroom-${Date.now()}.jpg`, { type: "image/jpeg" });
+      onCapture(file);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // After-capture state: show the still + Retake button. The stream is
+  // already stopped by the effect above.
+  if (capturedUrl) {
+    return (
+      <div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={capturedUrl}
+          alt="Captured classroom photo"
+          className="w-full rounded-xl border border-emerald-300 object-cover max-h-56"
+        />
+        <button
+          type="button"
+          onClick={onRetake}
+          className="mt-2 w-full py-2.5 rounded-xl text-[12.5px] font-bold border border-slate-200 text-slate-600 hover:bg-slate-50"
+        >
+          Retake photo
+        </button>
+      </div>
+    );
+  }
+
+  // Live preview state.
+  return (
+    <div>
+      <div className="relative w-full rounded-xl overflow-hidden border-2 border-dashed border-slate-300 bg-slate-900 aspect-video">
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          className="w-full h-full object-cover"
+        />
+        {/* Hidden capture canvas */}
+        <canvas ref={canvasRef} className="hidden" />
+        {/* States overlay on top of the (likely dark) video element. */}
+        {starting && !error && (
+          <div className="absolute inset-0 flex items-center justify-center text-white text-[12px] bg-slate-900/70">
+            Starting camera…
+          </div>
+        )}
+        {error && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white text-center px-4 bg-slate-900/85">
+            <p className="text-[12.5px] font-medium leading-snug">{error}</p>
+            <button
+              type="button"
+              onClick={startStream}
+              className="px-3 py-1.5 rounded-md text-[11.5px] font-bold bg-white text-slate-800"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={handleCapture}
+        disabled={starting || !!error || busy}
+        className="mt-2 w-full py-3 rounded-xl text-[12.5px] font-bold text-white bg-[#114b9f] hover:bg-[#0e3d82] disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+          <circle cx="12" cy="13" r="4" />
+        </svg>
+        {busy ? "Capturing…" : "Capture classroom photo"}
+      </button>
+      <p className="mt-1.5 text-[10.5px] text-slate-400 text-center">
+        Photo must be taken now with your device camera.
+      </p>
+    </div>
+  );
+}
+
+// ─── Date helpers ───────────────────────────────────────────────────────────
+// Manila is UTC+8, no DST. Returns YYYY-MM-DD in Manila local time. We can't
+// use `lib/utils/date.ts:todayLocal()` directly because that file imports
+// server-only helpers; recomputing here keeps the client bundle small.
+function manilaDateKey(d: Date): string {
+  const ms = d.getTime() + 8 * 60 * 60 * 1000;
+  const x = new Date(ms);
+  const y = x.getUTCFullYear();
+  const m = String(x.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(x.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 // ─── Activity feed helpers ──────────────────────────────────────────────────

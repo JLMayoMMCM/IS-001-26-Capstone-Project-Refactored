@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   DEMO_COOKIE_NAME,
+  DEMO_USER_COOKIE_NAME,
   ROLES,
   ROLE_LABEL,
   ROLE_ACCENT,
@@ -64,6 +65,8 @@ export default function AppShell({
   function switchRole(next: Role) {
     if (!demo || next === role) return;
     document.cookie = `${DEMO_COOKIE_NAME}=${next}; path=/; max-age=${60 * 60 * 24 * 365}`;
+    // Drop any pinned demo user — that ID belongs to the previous role.
+    document.cookie = `${DEMO_USER_COOKIE_NAME}=; path=/; max-age=0`;
     router.push(roleHomePath[next]);
     router.refresh();
   }
@@ -71,6 +74,7 @@ export default function AppShell({
   async function signOut() {
     await fetch("/apis/auth/signout", { method: "POST" });
     document.cookie = `${DEMO_COOKIE_NAME}=; path=/; max-age=0`;
+    document.cookie = `${DEMO_USER_COOKIE_NAME}=; path=/; max-age=0`;
     router.push("/auth/login");
   }
 
@@ -222,21 +226,24 @@ export default function AppShell({
               <NotificationBell />
 
               {demo && (
-                <select
-                  className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white"
-                  value={role}
-                  onChange={(e) => switchRole(e.target.value as Role)}
-                  aria-label="Switch demo role"
-                >
-                  {ROLES.map((r) => (
-                    <option key={r} value={r}>
-                      {ROLE_LABEL[r]}
-                    </option>
-                  ))}
-                </select>
+                <>
+                  <select
+                    className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white"
+                    value={role}
+                    onChange={(e) => switchRole(e.target.value as Role)}
+                    aria-label="Switch demo role"
+                  >
+                    {ROLES.map((r) => (
+                      <option key={r} value={r}>
+                        {ROLE_LABEL[r]}
+                      </option>
+                    ))}
+                  </select>
+                  <DemoAccountSwitcher role={role} />
+                </>
               )}
 
-              {userName && (
+              {!demo && userName && (
                 <span className="hidden lg:inline text-xs text-slate-500 max-w-32 truncate">
                   {userName}
                 </span>
@@ -254,5 +261,61 @@ export default function AppShell({
           <main>{children}</main>
       </div>
     </div>
+  );
+}
+
+function DemoAccountSwitcher({ role }: { role: Role }) {
+  const router = useRouter();
+  const [users, setUsers] = useState<Array<{ id: string; full_name: string; email: string }>>([]);
+  const [meId, setMeId] = useState<string>(""); // active user resolved server-side
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([
+      fetch(`/apis/demo/users?role=${role}`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : { users: [] })),
+      fetch(`/apis/users/me`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : { user: null })),
+    ])
+      .then(([usersJson, meJson]) => {
+        if (!alive) return;
+        setUsers((usersJson?.users ?? []) as Array<{ id: string; full_name: string; email: string }>);
+        setMeId(meJson?.user?.id ?? "");
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [role]);
+
+  function pickUser(id: string) {
+    if (id) {
+      document.cookie = `fluxtrack_demo_user_id=${id}; path=/; max-age=${60 * 60 * 24 * 365}`;
+    } else {
+      document.cookie = `fluxtrack_demo_user_id=; path=/; max-age=0`;
+    }
+    router.refresh();
+  }
+
+  // Single seeded user → no switching needed; show name as a label.
+  if (users.length <= 1) {
+    const u = users[0];
+    return u ? (
+      <span className="hidden lg:inline text-xs text-slate-500 max-w-32 truncate" title={u.full_name}>
+        {u.full_name}
+      </span>
+    ) : null;
+  }
+
+  return (
+    <select
+      className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white max-w-[160px]"
+      value={meId}
+      onChange={(e) => pickUser(e.target.value)}
+      aria-label="Switch demo account"
+      title="Switch demo account within this role"
+    >
+      {users.map((u) => (
+        <option key={u.id} value={u.id}>
+          {u.full_name}
+        </option>
+      ))}
+    </select>
   );
 }

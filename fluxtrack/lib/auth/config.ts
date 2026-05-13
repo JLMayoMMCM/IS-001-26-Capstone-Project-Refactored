@@ -16,6 +16,11 @@ export const ROLES: Role[] = [
 ];
 
 export const DEMO_COOKIE_NAME = "fluxtrack_demo_role";
+// Optional companion cookie: pins demo to a specific user_id within the chosen
+// role (we seed multiple users per role — 5 faculty, 2 IFO, 3 checker, 3 guard,
+// 2 HR — and the operator wants to "shift account" between them). When unset
+// the server falls back to the first active user of the role.
+export const DEMO_USER_COOKIE_NAME = "fluxtrack_demo_user_id";
 
 export const ROLE_HOME_PATH: Record<Role, string> = {
   faculty: "/faculty/dashboard",

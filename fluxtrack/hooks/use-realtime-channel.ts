@@ -29,19 +29,35 @@ export function useRealtimeChannel(
   ref.current = onChange;
 
   useEffect(() => {
-    const supabase = createClient();
-    const channel = supabase.channel(`rt-${table}-${filter ?? "all"}`);
-    channel.on(
-      "postgres_changes" as never,
-      { event, schema: "public", table, filter },
-      (payload: unknown) => {
-        const p = payload as ChangePayload;
-        ref.current?.(p);
-      }
-    );
-    channel.subscribe();
+    // Defensive: if the Supabase env config is missing on the client (e.g.
+    // dev server wasn't restarted after editing .env.local) skip the realtime
+    // subscription rather than crashing the host component.
+    let cleanup: (() => void) | null = null;
+    try {
+      const supabase = createClient();
+      const channel = supabase.channel(`rt-${table}-${filter ?? "all"}`);
+      channel.on(
+        "postgres_changes" as never,
+        { event, schema: "public", table, filter },
+        (payload: unknown) => {
+          const p = payload as ChangePayload;
+          ref.current?.(p);
+        }
+      );
+      channel.subscribe();
+      cleanup = () => {
+        try {
+          supabase.removeChannel(channel);
+        } catch {
+          /* ignore */
+        }
+      };
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("[useRealtimeChannel] subscription skipped:", e);
+    }
     return () => {
-      supabase.removeChannel(channel);
+      cleanup?.();
     };
   }, [table, filter, event]);
 }

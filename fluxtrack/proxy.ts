@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { DEMO_COOKIE_NAME, ROLES, rolesForPath, roleHomePath, type Role } from "@/lib/auth/config";
+import { supabaseConfig } from "@/lib/supabase/config";
 
 const PUBLIC_PATHS = ["/", "/auth/login", "/apis/test-connection", "/apis/auth/callback", "/apis/auth/signout"];
 
@@ -57,10 +58,8 @@ export async function proxy(request: NextRequest) {
   //  (b) every server page already calls getCurrentUser() / requireRole()
   //      which does the canonical lookup against public.users.
   let response = NextResponse.next({ request });
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
+  const cfg = supabaseConfig();
+  const supabase = createServerClient(cfg.url, cfg.publishableKey, {
       cookies: {
         getAll() {
           return request.cookies.getAll();

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { createServiceClient } from "@/lib/supabase/service";
-import { DEMO_COOKIE_NAME, isDemoMode, ROLES, type Role } from "./config";
+import { DEMO_COOKIE_NAME, DEMO_USER_COOKIE_NAME, isDemoMode, ROLES, type Role } from "./config";
 import { fallbackDemoUser } from "./demo-data";
 import type { CurrentUser } from "./types";
 import type { Database } from "@/lib/supabase/types";
@@ -8,6 +8,8 @@ import type { Database } from "@/lib/supabase/types";
 type UserRow = Database["public"]["Tables"]["users"]["Row"];
 
 export type { CurrentUser };
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function rowToUser(row: UserRow): CurrentUser {
   return {
@@ -28,15 +30,38 @@ export async function readDemoRole(): Promise<Role> {
   return "faculty";
 }
 
+export async function readDemoUserId(): Promise<string | null> {
+  const jar = await cookies();
+  const raw = jar.get(DEMO_USER_COOKIE_NAME)?.value;
+  return raw && UUID_RE.test(raw) ? raw : null;
+}
+
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (isDemoMode()) {
     const role = await readDemoRole();
+    const pinnedId = await readDemoUserId();
     const svc = createServiceClient();
+
+    // Prefer the pinned user — but only if it still matches the active role
+    // (operator may have switched roles since the user_id was set, leaving a
+    // stale cookie). On any mismatch we silently fall back to first-of-role.
+    if (pinnedId) {
+      const { data } = await svc
+        .from("users")
+        .select("*")
+        .eq("id", pinnedId)
+        .eq("role", role)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (data) return rowToUser(data as UserRow);
+    }
+
     const { data } = await svc
       .from("users")
       .select("*")
       .eq("role", role)
       .eq("is_active", true)
+      .order("full_name")
       .limit(1)
       .maybeSingle();
     if (data) return rowToUser(data as UserRow);

@@ -1,0 +1,1346 @@
+[
+  {
+    "room_no": "A101",
+    "capacity": "0",
+    "room_type": "Lecture",
+    "room_name": "Global Classroom",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A201",
+    "capacity": "35",
+    "room_type": "Laboratory",
+    "room_name": "Therapy Room",
+    "caretaker": "CHS"
+  },
+  {
+    "room_no": "A202",
+    "capacity": "35",
+    "room_type": "Laboratory",
+    "room_name": "Psychology Lab 1",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A301",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Admin Drawing Room 1",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A302",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Admin Drawing Room 2",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A401",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Communications and MMA Laboratory",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A401-A",
+    "capacity": "20",
+    "room_type": "Laboratory",
+    "room_name": "Video Production Studio",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A401-B",
+    "capacity": "20",
+    "room_type": "Laboratory",
+    "room_name": "Audio Production Studio",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A401-C",
+    "capacity": "3",
+    "room_type": "Laboratory",
+    "room_name": "Control Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A402",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "Telemarketers",
+    "caretaker": ""
+  },
+  {
+    "room_no": "A403",
+    "capacity": "10",
+    "room_type": "Laboratory",
+    "room_name": "Photography Lab",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A404",
+    "capacity": "1000",
+    "room_type": "Lecture",
+    "room_name": "Auditorium",
+    "caretaker": "SHARED"
+  },
+  {
+    "room_no": "A405",
+    "capacity": "0",
+    "room_type": "Lecture",
+    "room_name": "Audi 1 (Isuzu)",
+    "caretaker": "CAS"
+  },
+  {
+    "room_no": "A405-A",
+    "capacity": "50",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A405-B",
+    "capacity": "50",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A406",
+    "capacity": "0",
+    "room_type": "Lecture",
+    "room_name": "Audi 2 (Center)",
+    "caretaker": "SHARED"
+  },
+  {
+    "room_no": "A406-A",
+    "capacity": "60",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A406-B",
+    "capacity": "60",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A407",
+    "capacity": "0",
+    "room_type": "Lecture",
+    "room_name": "Audi 3 (MTS)",
+    "caretaker": "SHARED"
+  },
+  {
+    "room_no": "A407-A",
+    "capacity": "50",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A407-B",
+    "capacity": "50",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A408",
+    "capacity": "0",
+    "room_type": "Lecture",
+    "room_name": "Audi 4 (Isuzu)",
+    "caretaker": "SHARED"
+  },
+  {
+    "room_no": "A408-A",
+    "capacity": "50",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A408-B",
+    "capacity": "50",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A409",
+    "capacity": "0",
+    "room_type": "Lecture",
+    "room_name": "Audi 5 (Center)",
+    "caretaker": "SHARED"
+  },
+  {
+    "room_no": "A409-A",
+    "capacity": "60",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A409-B",
+    "capacity": "60",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A410",
+    "capacity": "0",
+    "room_type": "Lecture",
+    "room_name": "Audi 6 (MTS)",
+    "caretaker": "SHARED"
+  },
+  {
+    "room_no": "A410-A",
+    "capacity": "50",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A410-B",
+    "capacity": "50",
+    "room_type": "Lecture",
+    "room_name": "Multi-functional Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "A413",
+    "capacity": "0",
+    "room_type": "Backstage",
+    "room_name": "Backstage / Travel & Tour",
+    "caretaker": ""
+  },
+  {
+    "room_no": "GYM1",
+    "capacity": "0",
+    "room_type": "Lecture",
+    "room_name": "PE Lecture Room",
+    "caretaker": "DISABLED"
+  },
+  {
+    "room_no": "GYM2",
+    "capacity": "0",
+    "room_type": "Lecture",
+    "room_name": "PE Lecture Room",
+    "caretaker": "DISABLED"
+  },
+  {
+    "room_no": "GYM3",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Playcourt Quadrant 1",
+    "caretaker": "SHARED"
+  },
+  {
+    "room_no": "GYM4",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Playcourt Quadrant 2",
+    "caretaker": "SHARED"
+  },
+  {
+    "room_no": "GYM5",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Playcourt Quadrant 3",
+    "caretaker": "SHARED"
+  },
+  {
+    "room_no": "GYM6",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Playcourt Quadrant 4",
+    "caretaker": "SHARED"
+  },
+  {
+    "room_no": "P101",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Physical Therapy Lab",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R102",
+    "capacity": "0",
+    "room_type": "Laboratory",
+    "room_name": "Isolation Room",
+    "caretaker": "NURSING"
+  },
+  {
+    "room_no": "R103",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "Clinic",
+    "caretaker": ""
+  },
+  {
+    "room_no": "R104",
+    "capacity": "30",
+    "room_type": "Laboratory",
+    "room_name": "Simulation Laboratory",
+    "caretaker": "NURSING"
+  },
+  {
+    "room_no": "R105",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Mechanical Engineering Lab",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R106",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Welding Shop",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R109",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Hydraulics & Pilot Plant",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R110",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "IFO",
+    "caretaker": ""
+  },
+  {
+    "room_no": "R112",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Machine Shop",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R116",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "ORDI Office",
+    "caretaker": ""
+  },
+  {
+    "room_no": "R201",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R202",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "HS Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "R203",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R205",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R206",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "HS Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "R207",
+    "capacity": "45",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R209",
+    "capacity": "45",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R210",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Drawing Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R211",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R213",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R214",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Drawing Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R215",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R301",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R302",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Technology and Livelihood Education",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R303",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R304",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R305",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R306",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R307",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room (BYOD)",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R308",
+    "capacity": "35",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R309",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Nursing Skills Laboratory",
+    "caretaker": "NURSING"
+  },
+  {
+    "room_no": "R310",
+    "capacity": "35",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R311",
+    "capacity": "35",
+    "room_type": "Laboratory",
+    "room_name": "ICU",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R312",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R313",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R314",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R315",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R316",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R401",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R402",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R403",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R404",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R405",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R406",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R407",
+    "capacity": "45",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room (BYOD)",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R408",
+    "capacity": "35",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "R409",
+    "capacity": "45",
+    "room_type": "Laboratory",
+    "room_name": "EMC",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R410",
+    "capacity": "35",
+    "room_type": "Laboratory",
+    "room_name": "Cisco Laboratory",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R411",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R412",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Physics Laboratory",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R413",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R414",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R415",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R416",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R501",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "Mapua Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "R502",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R503",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "ETY Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "R504",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R506",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R508",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "CHS Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "R510",
+    "capacity": "35",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R511",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "CIT Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "R512",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R513",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "CAS Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "R514",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R516",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R601",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Computer Lab 1 (MAC)",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R602",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Computer Lab 2 (PC)",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R603",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Computer Lab 3 (MAC)",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R604",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Computer Lab 4 (PC)",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R607",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Multifunctional Laboratory",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R608",
+    "capacity": "35",
+    "room_type": "Laboratory",
+    "room_name": "Pharmacy Instrumention/Dispensing Room",
+    "caretaker": "CHS"
+  },
+  {
+    "room_no": "R609",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Chemistry Lab 1",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R610",
+    "capacity": "30",
+    "room_type": "Laboratory",
+    "room_name": "Ergonomics Laboratory",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R612",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "ECE Laboratory 1",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R613",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "Chem Storage ",
+    "caretaker": ""
+  },
+  {
+    "room_no": "R615",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Chemistry Lab 2",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "R616",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "ECE Laboratory 2",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "U101",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "UTM & Soil Testing Lab",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V103",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Instrumentation Lab",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V104",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "Virtual Clinic",
+    "caretaker": ""
+  },
+  {
+    "room_no": "V105",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Mechanical Engineering Lab",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V106",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Welding Shop",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V109",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Hydraulics & Pilot Plant",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V110",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual HVAC",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V112",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Machine Shop",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V116",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Soil Mechanics Lab",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V201",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V202",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "Virtual SHS Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "V203",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V205",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V206",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Drawing Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V207",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V209",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V210",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Drawing Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V211",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V213",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V214",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Drawing Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V215",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V301",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V302",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V303",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V304",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V305",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V306",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V307",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V308",
+    "capacity": "35",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V309",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V310",
+    "capacity": "35",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V311",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V312",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V313",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V314",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V315",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V316",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V401",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V402",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "SENIOR HIGH"
+  },
+  {
+    "room_no": "V403",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V404",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V405",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V406",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V407",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V408",
+    "capacity": "35",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V409",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V410",
+    "capacity": "35",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V411",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V412",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V413",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V414",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V415",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V416",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V501",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "Virtual Mapua Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "V502",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V503",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "Virtual ETY Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "V504",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V506",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V508",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Ergonomics Laboratory",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V510",
+    "capacity": "35",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Incubation Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V511",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "Virtual CIT Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "V512",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V513",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "Virtual CAS Faculty Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "V514",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V516",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V601",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Computer Lab 1 (MAC)",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V602",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Computer Lab 2 (PC)",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V603",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Computer Lab 3 (MAC)",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V604",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Computer Lab 4 (PC)",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V607",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Physics Lab",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V608",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "V609",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Chemistry Lab 1",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V610",
+    "capacity": "40",
+    "room_type": "Lecture",
+    "room_name": "Virtual Lecture Room",
+    "caretaker": ""
+  },
+  {
+    "room_no": "V612",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual ECE Laboratory 1",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V613",
+    "capacity": "0",
+    "room_type": "Office",
+    "room_name": "Virtual Chem Storage ",
+    "caretaker": ""
+  },
+  {
+    "room_no": "V615",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual Chemistry Lab 2",
+    "caretaker": "COLLEGE"
+  },
+  {
+    "room_no": "V616",
+    "capacity": "40",
+    "room_type": "Laboratory",
+    "room_name": "Virtual ECE Laboratory 2",
+    "caretaker": "COLLEGE"
+  }
+]

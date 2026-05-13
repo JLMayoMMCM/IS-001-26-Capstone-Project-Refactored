@@ -13,6 +13,7 @@ export const GET = handle(async (req) => {
   const user = await getCurrentUser();
   const url = new URL(req.url);
   const day = url.searchParams.get("day");
+  const facultyId = url.searchParams.get("faculty_id");
   const includeArchived = url.searchParams.get("include_archived") === "1";
   const isAdmin =
     user.role === "ifo_admin" || user.role === "hr_admin" || user.role === "system_admin";
@@ -28,7 +29,7 @@ export const GET = handle(async (req) => {
        term_start_date, term_end_date, section_id,
        archived_at, archived_by, archive_reason,
        replaced_by_schedule_id, replaces_schedule_id,
-       faculty:users!schedules_faculty_id_fkey(full_name, email),
+       faculty:users!schedules_faculty_id_fkey(full_name, email, department),
        room:rooms(id, room_code, building, floor_number)`,
     );
 
@@ -43,6 +44,12 @@ export const GET = handle(async (req) => {
       return NextResponse.json({ schedules: [], date: todayLocal() });
     }
     query = query.eq("day_of_week", dow);
+  }
+
+  // Admins can query an arbitrary faculty's schedule. Faculty users can only
+  // ever see their own (the post-query filter below still enforces that).
+  if (facultyId && isAdmin) {
+    query = query.eq("faculty_id", facultyId);
   }
 
   const { data, error } = await query.order("start_time");

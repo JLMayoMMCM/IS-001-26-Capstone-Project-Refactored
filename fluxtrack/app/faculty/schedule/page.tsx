@@ -1,9 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRealtimeChannel } from "@/hooks/use-realtime-channel";
 
 type Modality = "f2f" | "blended" | "online";
 type DayOfWeek = "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
+type SessionStatus =
+  | "scheduled"
+  | "pending"
+  | "active"
+  | "en_route"
+  | "completed"
+  | "early_end"
+  | "absent"
+  | "overstay"
+  | "checker_flagged";
 
 type Schedule = {
   id: string;
@@ -21,6 +32,27 @@ type Schedule = {
   room: { id: string; room_code: string; building: string; floor_number: number } | null;
 };
 
+type LiveSession = {
+  id: string;
+  session_date: string;
+  status: SessionStatus;
+  schedule_id: string;
+  actual_start: string | null;
+  actual_end: string | null;
+};
+
+const STATUS_META: Record<SessionStatus, { bg: string; label: string }> = {
+  scheduled:       { bg: "#94a3b8", label: "Scheduled" },
+  pending:         { bg: "#f59e0b", label: "Pending"   },
+  active:          { bg: "#10b981", label: "Live"      },
+  en_route:        { bg: "#0ea5e9", label: "En route"  },
+  completed:       { bg: "#1e3a8a", label: "Done"      },
+  early_end:       { bg: "#7c3aed", label: "Early"     },
+  absent:          { bg: "#ef4444", label: "Absent"    },
+  overstay:        { bg: "#f43f5e", label: "Overstay"  },
+  checker_flagged: { bg: "#d97706", label: "Flagged"   },
+};
+
 const DAYS: { key: DayOfWeek; label: string; short: string; jsDay: number }[] = [
   { key: "mon", label: "Monday",    short: "Mon", jsDay: 1 },
   { key: "tue", label: "Tuesday",   short: "Tue", jsDay: 2 },
@@ -36,8 +68,9 @@ const MOD: Record<Modality, { bar: string; bg: string; text: string; label: stri
   online:  { bar: "#0d9488", bg: "#ccfbf1", text: "#115e59", label: "Online" },
 };
 
-const START_HOUR = 7;
-const END_HOUR = 21;
+// 1 AM → midnight grid; END_HOUR=24 is the midnight tick at the bottom.
+const START_HOUR = 1;
+const END_HOUR = 24;
 const HOUR_HEIGHT = 56;
 const TOTAL_HOURS = END_HOUR - START_HOUR;
 
@@ -89,6 +122,13 @@ function sameDate(a: Date, b: Date): boolean {
   );
 }
 
+function dateKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 function fmtDateRange(weekStart: Date): string {
   const weekEnd = addDays(weekStart, 5);
   const sameMonth = weekStart.getMonth() === weekEnd.getMonth();
@@ -105,30 +145,44 @@ function fmtDateRange(weekStart: Date): string {
 export default function SchedulePage() {
   const [me, setMe] = useState<{ full_name: string; department: string | null } | null>(null);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [liveSessions, setLiveSessions] = useState<LiveSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"week" | "list">("week");
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date()));
   const [selected, setSelected] = useState<Schedule | null>(null);
+  const reloadRef = useRef<() => void>(() => {});
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [meRes, schedRes] = await Promise.all([
+      const from = dateKey(weekStart);
+      const to = dateKey(addDays(weekStart, 5));
+      const [meRes, schedRes, sessRes] = await Promise.all([
         fetch("/apis/users/me", { cache: "no-store" }),
         fetch("/apis/schedules", { cache: "no-store" }),
+        fetch(`/apis/sessions?from=${from}&to=${to}`, { cache: "no-store" }),
       ]);
       const meJson = await meRes.json();
       const schedJson = await schedRes.json();
+      const sessJson = await sessRes.json().catch(() => ({ sessions: [] }));
       setMe(meJson?.user ?? null);
       setSchedules(schedJson?.schedules ?? []);
+      setLiveSessions((sessJson?.sessions ?? []) as LiveSession[]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [weekStart]);
 
   useEffect(() => {
+    reloadRef.current = load;
     load();
   }, [load]);
+
+  // Any session change for this faculty (RLS already scopes to self) re-fetches
+  // so the live status chip flips as tap-ins land.
+  useRealtimeChannel("sessions", () => {
+    reloadRef.current?.();
+  });
 
   const byDay = useMemo(() => {
     const map = new Map<DayOfWeek, Schedule[]>();
@@ -140,6 +194,15 @@ export default function SchedulePage() {
     map.forEach((list) => list.sort((a, b) => a.start_time.localeCompare(b.start_time)));
     return map;
   }, [schedules]);
+
+  // schedule_id|YYYY-MM-DD → live session (status overlay key).
+  const sessionByScheduleOnDate = useMemo(() => {
+    const map = new Map<string, LiveSession>();
+    liveSessions.forEach((s) => {
+      map.set(`${s.schedule_id}|${s.session_date}`, s);
+    });
+    return map;
+  }, [liveSessions]);
 
   const stats = useMemo(() => {
     const total = schedules.length;
@@ -275,10 +338,10 @@ export default function SchedulePage() {
         )}
 
         {!loading && schedules.length > 0 && view === "week" && (
-          <WeekGrid byDay={byDay} weekStart={weekStart} onSelect={setSelected} />
+          <WeekGrid byDay={byDay} weekStart={weekStart} liveMap={sessionByScheduleOnDate} onSelect={setSelected} />
         )}
         {!loading && schedules.length > 0 && view === "list" && (
-          <ListView byDay={byDay} weekStart={weekStart} onSelect={setSelected} />
+          <ListView byDay={byDay} weekStart={weekStart} liveMap={sessionByScheduleOnDate} onSelect={setSelected} />
         )}
       </div>
 
@@ -298,10 +361,12 @@ export default function SchedulePage() {
 function WeekGrid({
   byDay,
   weekStart,
+  liveMap,
   onSelect,
 }: {
   byDay: Map<DayOfWeek, Schedule[]>;
   weekStart: Date;
+  liveMap: Map<string, LiveSession>;
   onSelect: (s: Schedule) => void;
 }) {
   const today = new Date();
@@ -337,8 +402,9 @@ function WeekGrid({
           <div className="border-r border-slate-200 bg-slate-50/30">
             {Array.from({ length: TOTAL_HOURS }).map((_, i) => {
               const hour = START_HOUR + i;
-              const am = hour < 12;
-              const hh = ((hour + 11) % 12) + 1;
+              // hour=24 is the midnight tick — render "12 AM".
+              const am = hour < 12 || hour === 24;
+              const hh = hour === 24 ? 12 : ((hour + 11) % 12) + 1;
               return (
                 <div
                   key={hour}
@@ -374,6 +440,7 @@ function WeekGrid({
                   const { top, height } = classGeometry(cls.start_time, cls.end_time);
                   const mc = MOD[cls.scheduled_modality];
                   const compact = height < 56;
+                  const live = liveMap.get(`${cls.id}|${dateKey(dayDate)}`);
                   return (
                     <button
                       key={cls.id}
@@ -393,12 +460,16 @@ function WeekGrid({
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
                           <p className="text-[12px] font-bold truncate">{cls.course_code}</p>
-                          <span
-                            className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0"
-                            style={{ background: mc.bar, color: "#fff" }}
-                          >
-                            {mc.label}
-                          </span>
+                          {live ? (
+                            <LiveStatusChip status={live.status} />
+                          ) : (
+                            <span
+                              className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0"
+                              style={{ background: mc.bar, color: "#fff" }}
+                            >
+                              {mc.label}
+                            </span>
+                          )}
                         </div>
                         {!compact && (
                           <>
@@ -435,6 +506,20 @@ function WeekGrid({
   );
 }
 
+function LiveStatusChip({ status }: { status: SessionStatus }) {
+  const m = STATUS_META[status];
+  return (
+    <span
+      className="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0 inline-flex items-center gap-1"
+      style={{ background: m.bg, color: "#fff" }}
+      title={`Session ${m.label}`}
+    >
+      {status === "active" && <span className="w-1 h-1 rounded-full bg-white animate-pulse" />}
+      {m.label}
+    </span>
+  );
+}
+
 function NowLine() {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -458,10 +543,12 @@ function NowLine() {
 function ListView({
   byDay,
   weekStart,
+  liveMap,
   onSelect,
 }: {
   byDay: Map<DayOfWeek, Schedule[]>;
   weekStart: Date;
+  liveMap: Map<string, LiveSession>;
   onSelect: (s: Schedule) => void;
 }) {
   const today = new Date();
@@ -489,6 +576,7 @@ function ListView({
             <div className="space-y-2.5">
               {items.map((cls) => {
                 const mc = MOD[cls.scheduled_modality];
+                const live = liveMap.get(`${cls.id}|${dateKey(dayDate)}`);
                 return (
                   <button
                     key={cls.id}
@@ -510,6 +598,7 @@ function ListView({
                         >
                           {mc.label}
                         </span>
+                        {live && <LiveStatusChip status={live.status} />}
                       </div>
                       <p className="text-[12.5px] text-slate-600 truncate">{cls.course_name}</p>
                       <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-400 flex-wrap">
