@@ -11,12 +11,12 @@ import { ROLE_LABEL, type Role } from "@/lib/auth/config";
 //      next/image we'd need to fight the width/height props at every callsite.
 //   3. Plain <img> with explicit width on the element produces consistent SSR
 //      and client renders → no hydration mismatch.
-export const SHIELD_SRC = "/brand/mmcm-shield.png";
-export const FULL_LOGO_SRC = "/brand/mmcm-logo-full.png";
+export const SHIELD_SRC = "/brand/mmcm-shield.webp";
+export const FULL_LOGO_SRC = "/brand/mmcm-logo-full.webp";
 // Horizontal lock-up (shield + Mapúa wordmark side-by-side, white background).
 // Use this on light/white surfaces, or inside a white card on dark imagery.
-export const FULL_LOGO_HORIZONTAL_SRC = "/brand/mmcm-logo_full_horizontal.png";
-export const LOGIN_BG_SRC = "/brand/login-bg.jpg";
+export const FULL_LOGO_HORIZONTAL_SRC = "/brand/mmcm-logo_full_horizontal.webp";
+export const LOGIN_BG_SRC = "/brand/login-bg.webp";
 // Intrinsic dimensions of the shield asset (verified with `file`).
 const SHIELD_INTRINSIC = { w: 658, h: 622 };
 

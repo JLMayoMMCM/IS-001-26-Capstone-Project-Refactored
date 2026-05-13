@@ -9,7 +9,6 @@ import {
   ROLE_LABEL,
   ROLE_ACCENT,
   roleHomePath,
-  isDemoMode,
   type Role,
 } from "@/lib/auth/config";
 import { ROLE_NAV } from "@/lib/auth/nav";
@@ -22,15 +21,22 @@ const COLLAPSED_KEY = "fluxtrack_sidebar_collapsed";
 export default function AppShell({
   role,
   userName,
+  demoMode,
   children,
 }: {
   role: Role;
   userName?: string;
+  // The current demo-mode flag, resolved on the server by the role layout and
+  // passed in as a prop. We deliberately DON'T read process.env.NEXT_PUBLIC_*
+  // inside this client component because NEXT_PUBLIC_* values are inlined at
+  // build time and would survive .env.local edits — leading to a split-brain
+  // state where the server sees `false` and the client still sees `true`.
+  demoMode: boolean;
   children: ReactNode;
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const demo = isDemoMode();
+  const demo = demoMode;
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);

@@ -4,12 +4,17 @@ import { DEMO_COOKIE_NAME, ROLES, rolesForPath, roleHomePath, type Role } from "
 
 const PUBLIC_PATHS = ["/", "/auth/login", "/apis/test-connection", "/apis/auth/callback", "/apis/auth/signout"];
 
+// Anything served straight out of /public/ — these never require auth. The
+// matcher below ALSO excludes them at the edge so the middleware never runs
+// for these requests in the first place, but this is defense-in-depth in case
+// the matcher regex misses a case.
+const STATIC_PREFIXES = ["/_next", "/favicon", "/brand/", "/sw.js"];
+const STATIC_EXT_RE = /\.(?:png|jpg|jpeg|gif|svg|webp|ico|avif|woff2?|ttf|otf|eot|map|css|js|json|txt|xml|pdf)$/i;
+
 function isPublic(pathname: string): boolean {
   if (PUBLIC_PATHS.includes(pathname)) return true;
-  // Allow static assets and the apis surface (route handlers handle their own auth)
-  if (pathname.startsWith("/_next") || pathname.startsWith("/favicon") || pathname.startsWith("/public")) {
-    return true;
-  }
+  if (STATIC_PREFIXES.some((p) => pathname.startsWith(p))) return true;
+  if (STATIC_EXT_RE.test(pathname)) return true;
   if (pathname.startsWith("/apis/")) return true;
   return false;
 }
@@ -81,6 +86,11 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
+// Skip the middleware entirely for Next.js internals, the favicon, and the
+// /brand/ prefix. We deliberately keep the matcher regex simple — path-to-regexp
+// (which Next compiles matchers with) does not support arbitrary lookaheads
+// reliably. The `isPublic()` guard at the top of `proxy()` handles every other
+// static-file case (file-extension sniff).
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|public).*)"],
+  matcher: ["/((?!_next/|favicon\\.ico|brand/|sw\\.js).*)"],
 };
