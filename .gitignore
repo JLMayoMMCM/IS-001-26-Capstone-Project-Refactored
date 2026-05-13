@@ -1,6 +1,8 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
 # dependencies
-/node_modules
-/.pnp
+fluxtrack/node_modules
+fluxtrack/.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -9,14 +11,14 @@
 !.yarn/versions
 
 # testing
-/coverage
+fluxtrack/coverage
 
 # next.js
-/.next/
-/out/
+fluxtrack/.next/
+fluxtrack/out/
 
 # production
-/build
+fluxtrack/build
 
 # misc
 .DS_Store
@@ -29,14 +31,15 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+fluxtrack/.env*
 
 # vercel
-.vercel
+fluxtrack/.vercel
 
 # typescript
-*.tsbuildinfo
-next-env.d.ts
+fluxtrack/*.tsbuildinfo
+fluxtrack/next-env.d.ts
+
 
 #replication file
 /replication
