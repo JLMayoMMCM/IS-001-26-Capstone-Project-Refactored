@@ -123,8 +123,209 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Prevent iOS Safari from auto-zooming when an input gains focus. The
+       16px floor on text-base inputs handles that — body sets the default. */
+    font-size: 15px;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
   }
   html {
     @apply font-sans;
   }
+  /* iOS form controls need an explicit 16px min on the actual input element
+     to suppress focus-zoom. We bump it via the rule below; on desktop the
+     visual size is set with text-[13px]/[14px] utilities. */
+  input, select, textarea {
+    font-size: max(16px, 1em);
+  }
 }
+
+/* ─── FluxTrack Design Tokens ──────────────────────────────────────────────
+   The pages reference these class names extensively but they were never
+   defined — Tailwind v4 silently no-ops unknown utilities, which left the
+   pages looking under-styled. Defining them once here propagates across the
+   whole app without per-page edits.
+
+   Typography scale (mobile-first, scales up at sm:):
+     text-headline → page H1
+     text-title    → card / section H2
+     text-overline → small uppercase label
+     text-body     → default copy
+     text-meta     → secondary metadata (smaller, muted)
+*/
+@layer components {
+  .text-headline {
+    @apply text-[20px] sm:text-[22px] font-bold tracking-tight leading-tight;
+  }
+  .text-title {
+    @apply text-[15px] sm:text-[16px] font-bold tracking-tight leading-snug;
+  }
+  .text-overline {
+    @apply text-[10.5px] font-bold uppercase tracking-[0.08em] text-slate-500;
+  }
+  .text-body {
+    @apply text-[14px] leading-relaxed text-slate-700;
+  }
+  .text-meta {
+    @apply text-[12px] leading-snug text-slate-500;
+  }
+
+  /* Card primitive — used 50+ times. White background, slate-tinted shadow
+     for visible depth on near-white pages. Pair with `lift` for hover
+     feedback on clickable cards, and with one of the `card-*` accent
+     modifiers below to color-code by functionality. */
+  .card-surface {
+    @apply bg-white rounded-2xl border border-slate-200;
+    /* Slate-tinted instead of pure-black so the shadow doesn't muddy the
+       brand palette. Layered: a soft halo + a tight close shadow for the
+       "lifted off the page" feel. */
+    box-shadow: 0 4px 12px -2px rgb(15 23 42 / 0.06),
+                0 1px 3px -1px rgb(15 23 42 / 0.04);
+  }
+
+  /* Functional accent borders — each card category gets a 3px colored top
+     stripe so sections are visually grouped by purpose at a glance.
+     Pattern: pair with `card-surface`, e.g. `card-surface card-primary`.
+
+     Mapping in use:
+       primary  → core actions / agenda     (#114b9f navy)
+       success  → live status / active      (#10b981 emerald)
+       danger   → assistance / disputes     (#e50019 MMCM red)
+       info     → activity feeds / stats    (#0ea5e9 sky)
+       warning  → flags / overstay          (#f59e0b amber)
+       neutral  → profile / settings        (#64748b slate) */
+  .card-primary,
+  .card-success,
+  .card-danger,
+  .card-info,
+  .card-warning,
+  .card-neutral {
+    border-top-width: 3px;
+  }
+  .card-primary { border-top-color: #114b9f; }
+  .card-success { border-top-color: #10b981; }
+  .card-danger  { border-top-color: #e50019; }
+  .card-info    { border-top-color: #0ea5e9; }
+  .card-warning { border-top-color: #f59e0b; }
+  .card-neutral { border-top-color: #64748b; }
+
+  /* Solid-fill variants — used for high-emphasis cards where the whole tile
+     is the accent, not just a top stripe. The user profile pill and Quick
+     Assistance card both use these so they read as "this is the brand
+     identity / this is urgent" without needing extra header decoration.
+
+     Foreground colors auto-flip via the `*-solid` text utilities below so
+     callers don't have to remember which text color goes on which bg. */
+  .card-primary-solid {
+    @apply text-white border-transparent;
+    background-color: #001c43;
+    /* Keep the shadow visible against the dark fill by deepening it a bit. */
+    box-shadow: 0 6px 16px -4px rgb(0 28 67 / 0.35),
+                0 1px 3px -1px rgb(0 28 67 / 0.25);
+  }
+  .card-danger-solid {
+    @apply text-white border-transparent;
+    background-color: #e50019;
+    box-shadow: 0 6px 16px -4px rgb(229 0 25 / 0.30),
+                0 1px 3px -1px rgb(229 0 25 / 0.20);
+  }
+
+  /* Foreground helpers — apply inside *-solid cards so the typography
+     hierarchy is still readable on the dark fill. */
+  .card-primary-solid .text-overline,
+  .card-danger-solid  .text-overline { @apply text-white/70; }
+  .card-primary-solid .text-meta,
+  .card-danger-solid  .text-meta     { @apply text-white/80; }
+
+  /* Hover lift effect — meant for clickable rows / cards. Pair with
+     `card-surface` or `border` for visible feedback. The hover shadow is
+     a bumped version of `card-surface`'s slate-tinted layered shadow so
+     the lift reads as elevation, not a sudden contrast change. Skip the
+     transform when the user prefers reduced motion. */
+  .lift {
+    @apply transition-all duration-200 will-change-transform;
+  }
+  .lift:hover {
+    @apply -translate-y-0.5 border-slate-300;
+    box-shadow: 0 8px 24px -4px rgb(15 23 42 / 0.10),
+                0 2px 6px -2px rgb(15 23 42 / 0.06);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lift, .lift:hover {
+      @apply transition-none translate-y-0;
+    }
+  }
+
+  /* Button primitives — keep them minimal here so per-page variations can
+     still layer on Tailwind utilities. min-h ensures mobile tap targets
+     hit the 44px Apple HIG / Material accessibility threshold. */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           px-5 py-3 min-h-[44px] rounded-xl
+           bg-[#001c43] text-white text-[13.5px] font-bold tracking-tight
+           shadow-sm hover:shadow-md hover:bg-[#0a2a5a]
+           focus:outline-none focus:ring-2 focus:ring-[#114b9f] focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#001c43]
+           transition-all duration-200;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           px-5 py-3 min-h-[44px] rounded-xl
+           bg-white text-slate-700 text-[13.5px] font-bold tracking-tight
+           border border-slate-200 hover:border-slate-300 hover:bg-slate-50
+           focus:outline-none focus:ring-2 focus:ring-[#114b9f] focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed
+           transition-all duration-200;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           px-3 py-2 min-h-[40px] rounded-lg
+           text-slate-600 text-[13px] font-medium
+           hover:bg-slate-100 hover:text-slate-900
+           focus:outline-none focus:ring-2 focus:ring-[#114b9f]
+           disabled:opacity-50 transition-colors duration-150;
+  }
+
+  /* Modality badges — referenced across faculty/checker pages. Kept as
+     pill-shaped 10px chips matching the existing visual language. */
+  .badge-f2f {
+    @apply bg-emerald-100 text-emerald-800 border border-emerald-200;
+  }
+  .badge-hybrid {
+    @apply bg-violet-100 text-violet-800 border border-violet-200;
+  }
+  .badge-online {
+    @apply bg-cyan-100 text-cyan-800 border border-cyan-200;
+  }
+
+  /* Skeleton placeholder — used inline as `<div className="h-20 skeleton">`. */
+  .skeleton {
+    @apply animate-pulse bg-slate-100 rounded-lg;
+  }
+
+  /* Standardized focus ring — replaces the undefined `focus-ring` class
+     scattered through forms. Applied via `.focus-ring` or composed with
+     other state utilities. */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-[#114b9f]
+           focus:ring-offset-1 focus:border-[#114b9f];
+  }
+}
+
+/* ─── Entry animations ───────────────────────────────────────────────────── */
+@keyframes fluxFadeUp {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0,   0); }
+}
+
+.fade-up {
+  animation: fluxFadeUp 280ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up { animation: none; }
+}
+
+/* Safe-area-aware bottom padding for phones with home-indicators. Pages can
+   opt in by adding `pb-safe` on their outermost wrapper. */
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.75rem); }

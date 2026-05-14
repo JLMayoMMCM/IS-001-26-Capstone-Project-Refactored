@@ -122,6 +122,19 @@ function fmtDateRange(weekStart: Date): string {
   return `${weekStart.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })} – ${weekEnd.toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}`;
 }
 
+// The IFO live calendar groups sessions by physical building → floor so the
+// monitor doesn't smash dozens of concurrent classes from different rooms on
+// top of one another. Virtual classes (V-rooms, online via Teams) are
+// surfaced through a dedicated "Virtual" location since they don't share a
+// physical floor with anything else.
+//
+// PHYSICAL_BUILDINGS lists the on-campus buildings in display order — these
+// are exactly the values the API returns in `room.building` (set during the
+// rooms seed; see lib/data/rooms.ts:bucket()). Keeping the literal strings
+// here means no string-massaging is needed when comparing.
+const PHYSICAL_BUILDINGS = ["Admin Building", "Education Building", "Gymnasium", "Other"] as const;
+type LocationKey = "all" | typeof PHYSICAL_BUILDINGS[number] | "Virtual";
+
 export default function LiveCalendarPage() {
   const [view, setView] = useState<"week" | "day">("week");
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date()));
@@ -130,6 +143,11 @@ export default function LiveCalendarPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<LiveSession | null>(null);
   const [facultyFilter, setFacultyFilter] = useState<string>("all");
+  // Default: "all" — shows every session. Picking a building scopes to that
+  // building; picking a floor within a building scopes further. "Virtual" is
+  // its own bucket without floor sub-filtering.
+  const [location, setLocation] = useState<LocationKey>("all");
+  const [floorFilter, setFloorFilter] = useState<number | "all">("all");
   const reloadRef = useRef<() => void>(() => {});
 
   const rangeFrom = view === "week" ? dateKey(weekStart) : dateKey(selectedDate);
@@ -168,10 +186,46 @@ export default function LiveCalendarPage() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [sessions]);
 
-  const filtered = useMemo(
-    () => (facultyFilter === "all" ? sessions : sessions.filter((s) => s.faculty_id === facultyFilter)),
-    [sessions, facultyFilter],
-  );
+  // What buildings actually have sessions in the visible range? We hide the
+  // chip when there's nothing to show under it, so the operator isn't
+  // staring at a dead "Gymnasium" tab on a quiet day.
+  const buildingsWithSessions = useMemo(() => {
+    const set = new Set<string>();
+    sessions.forEach((s) => { if (s.room?.building) set.add(s.room.building); });
+    return set;
+  }, [sessions]);
+
+  // Floor list for the currently picked building. Virtual is intentionally
+  // floor-less — every V-room collapses to "online".
+  const availableFloors = useMemo(() => {
+    if (location === "all" || location === "Virtual") return [] as number[];
+    const set = new Set<number>();
+    sessions
+      .filter((s) => s.room?.building === location)
+      .forEach((s) => { if (typeof s.room?.floor_number === "number") set.add(s.room.floor_number); });
+    return Array.from(set).sort((a, b) => a - b);
+  }, [sessions, location]);
+
+  // Reset the floor sub-filter whenever the building changes — otherwise a
+  // floor that doesn't exist in the new building would silently hide
+  // everything.
+  useEffect(() => {
+    setFloorFilter("all");
+  }, [location]);
+
+  const filtered = useMemo(() => {
+    let list = sessions;
+    if (facultyFilter !== "all") {
+      list = list.filter((s) => s.faculty_id === facultyFilter);
+    }
+    if (location !== "all") {
+      list = list.filter((s) => s.room?.building === location);
+      if (location !== "Virtual" && floorFilter !== "all") {
+        list = list.filter((s) => s.room?.floor_number === floorFilter);
+      }
+    }
+    return list;
+  }, [sessions, facultyFilter, location, floorFilter]);
 
   const byDate = useMemo(() => {
     const map = new Map<string, LiveSession[]>();
@@ -201,7 +255,7 @@ export default function LiveCalendarPage() {
     <div className="flex-1 flex flex-col fade-up min-h-0">
       <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 flex-1 flex flex-col min-h-0">
         {/* Header card */}
-        <div className="card-surface p-5 lg:p-6">
+        <div className="card-surface card-primary p-5 lg:p-6">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="w-12 h-12 rounded-xl bg-blue-50 text-[#114b9f] flex items-center justify-center shrink-0">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -281,7 +335,7 @@ export default function LiveCalendarPage() {
               <select
                 value={facultyFilter}
                 onChange={(e) => setFacultyFilter(e.target.value)}
-                className="text-[12.5px] border border-slate-200 rounded-xl px-3 py-2 bg-white"
+                className="text-[12.5px] border border-slate-200 rounded-xl px-3 py-2 min-h-[40px] bg-white focus-ring"
                 aria-label="Filter by faculty"
               >
                 <option value="all">All faculty ({facultyOptions.length})</option>
@@ -290,6 +344,74 @@ export default function LiveCalendarPage() {
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* Location filter — building chips, with a floor sub-strip when a
+              physical building is selected. Virtual is its own bucket. */}
+          <div className="mt-4 space-y-2.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-overline mr-1">Location</span>
+              <LocationChip
+                active={location === "all"}
+                onClick={() => setLocation("all")}
+                label={`All (${sessions.length})`}
+              />
+              {PHYSICAL_BUILDINGS.filter((b) => buildingsWithSessions.has(b)).map((b) => {
+                const count = sessions.filter((s) => s.room?.building === b).length;
+                const short = b === "Admin Building" ? "Admin"
+                  : b === "Education Building" ? "Education"
+                  : b;
+                return (
+                  <LocationChip
+                    key={b}
+                    active={location === b}
+                    onClick={() => setLocation(b)}
+                    label={`${short} (${count})`}
+                  />
+                );
+              })}
+              {buildingsWithSessions.has("Virtual") && (
+                <LocationChip
+                  active={location === "Virtual"}
+                  onClick={() => setLocation("Virtual")}
+                  label={`Virtual (${sessions.filter((s) => s.room?.building === "Virtual").length})`}
+                  accent="#0d9488"
+                />
+              )}
+            </div>
+
+            {/* Floor chips — only render when a physical building (with > 1
+                floor) is picked. A single-floor building gets no chips because
+                "Floor X / All" is redundant. */}
+            {location !== "all" && location !== "Virtual" && availableFloors.length > 1 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-overline mr-1">Floor</span>
+                <LocationChip
+                  active={floorFilter === "all"}
+                  onClick={() => setFloorFilter("all")}
+                  label="All floors"
+                />
+                {availableFloors.map((f) => {
+                  const count = sessions.filter(
+                    (s) => s.room?.building === location && s.room?.floor_number === f,
+                  ).length;
+                  return (
+                    <LocationChip
+                      key={f}
+                      active={floorFilter === f}
+                      onClick={() => setFloorFilter(f)}
+                      label={`Floor ${f} (${count})`}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
+            {location === "Virtual" && (
+              <p className="text-[11.5px] text-slate-500 pl-1">
+                Online sessions in V-rooms. No physical floor — students join via Teams.
+              </p>
+            )}
           </div>
         </div>
 
@@ -335,8 +457,8 @@ function WeekGrid({
 }) {
   const today = new Date();
   return (
-    <div className="card-surface overflow-hidden flex-1 flex flex-col min-h-0">
-      <div className="grid grid-cols-[64px_repeat(6,1fr)] border-b border-slate-200 bg-slate-50/60">
+    <div className="card-surface card-primary overflow-hidden flex-1 flex flex-col min-h-0">
+      <div className="grid grid-cols-[44px_repeat(6,1fr)] sm:grid-cols-[64px_repeat(6,1fr)] border-b border-slate-200 bg-slate-50/60">
         <div className="p-3 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">GMT+8</div>
         {DAYS.map((d, i) => {
           const dayDate = addDays(weekStart, i);
@@ -358,7 +480,7 @@ function WeekGrid({
 
       <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
         <div
-          className="grid grid-cols-[64px_repeat(6,minmax(140px,1fr))] relative"
+          className="grid grid-cols-[44px_repeat(6,minmax(80px,1fr))] sm:grid-cols-[64px_repeat(6,minmax(140px,1fr))] relative"
           style={{ minHeight: TOTAL_HOURS * HOUR_HEIGHT }}
         >
           <div className="border-r border-slate-200 bg-slate-50/30">
@@ -440,7 +562,7 @@ function DayColumn({
 }) {
   const isToday = sameDate(date, new Date());
   return (
-    <div className="card-surface overflow-hidden flex-1 flex flex-col min-h-0">
+    <div className="card-surface card-primary overflow-hidden flex-1 flex flex-col min-h-0">
       <div className="p-4 border-b border-slate-200 bg-slate-50/60 flex items-center justify-between">
         <p className="text-[13px] font-bold text-[#001c43]">
           {date.toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric" })}
@@ -533,6 +655,40 @@ function Legend() {
         </span>
       ))}
     </div>
+  );
+}
+
+/**
+ * Filter chip used for the Location + Floor strip. Brand-navy when active so
+ * the picked scope is unambiguous; soft white-on-slate when idle. The optional
+ * `accent` lets the Virtual chip carry its teal hue so it visually reads as a
+ * different kind of bucket from the physical buildings.
+ */
+function LocationChip({
+  active,
+  onClick,
+  label,
+  accent,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  accent?: string;
+}) {
+  const activeBg = accent ?? "#001c43";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`px-3 py-1.5 min-h-[36px] rounded-full text-[12px] font-bold border transition-all focus:outline-none focus:ring-2 focus:ring-offset-1
+        ${active
+          ? "text-white border-transparent shadow-sm"
+          : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50"}`}
+      style={active ? { backgroundColor: activeBg, boxShadow: `0 2px 6px -1px ${activeBg}55` } : undefined}
+    >
+      {label}
+    </button>
   );
 }
 

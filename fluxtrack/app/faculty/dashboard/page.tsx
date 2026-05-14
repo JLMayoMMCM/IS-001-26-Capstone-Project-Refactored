@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useActiveSession } from "@/hooks/use-active-session";
+import EmptyState from "@/components/ui/empty-state";
 
 type Modality = "f2f" | "blended" | "online";
 
@@ -49,7 +50,16 @@ type ActivityItem = {
   actual_start: string | null;
   actual_end: string | null;
   duration_minutes: number | null;
-  schedule: { course_code: string; course_name: string } | null;
+  /** Required for the modality-match KPI — what the faculty actually started as. */
+  actual_modality: Modality | null;
+  schedule: {
+    course_code: string;
+    course_name: string;
+    /** Required for the modality-match KPI — what the schedule called for. */
+    scheduled_modality?: Modality;
+    /** Required for the on-time KPI — compares against `actual_start`. */
+    start_time?: string;
+  } | null;
   room: { room_code: string } | null;
 };
 
@@ -158,6 +168,73 @@ export default function FacultyDashboard() {
       return { schedule: sch, session: sess };
     });
   }, [schedules, sessions]);
+
+  /**
+   * Weekly KPIs — drives both the "This Week" KPI card under Check-in and
+   * the inline KPI strip on the Profile card.
+   *
+   * Source data is `activity` (which the page already fetches via
+   * /apis/sessions — RLS scopes it to the current faculty). We filter to the
+   * current Manila week (Mon–Sat) here rather than asking the API for a
+   * specific range, so the page stays a single round-trip.
+   */
+  const weekKpis = useMemo(() => {
+    const todayLocal = manilaDateKey(new Date());
+    const monStart = mondayOf(new Date());
+    const weekFrom = manilaDateKey(monStart);
+    const weekTo   = manilaDateKey(addDaysLocal(monStart, 5));
+
+    const inWeek = activity.filter(
+      (s) => s.session_date >= weekFrom && s.session_date <= weekTo,
+    );
+
+    // "Held" = whatever the faculty actually showed up for, treating an
+    // early_end as still a held session (they were there, just left early).
+    const held    = inWeek.filter((s) => s.status === "completed" || s.status === "early_end").length;
+    // Total planned for the week = anything that has a row (scheduled, active,
+    // completed, absent, …) — the cron materializer drops one row per
+    // schedule per day so this maps 1:1 to "supposed to teach".
+    const planned = inWeek.length;
+    const absent  = inWeek.filter((s) => s.status === "absent").length;
+
+    // On-time = started within a 5-minute grace window of scheduled start.
+    // We only count sessions that have both an actual_start and the schedule
+    // time we need to compare against; everything else (no-shows, still
+    // scheduled, broken data) is excluded from the denominator.
+    const ontimeBucket = inWeek.filter((s) => s.actual_start && s.schedule?.start_time);
+    const ontime = ontimeBucket.filter((s) => {
+      const [hh, mm] = (s.schedule!.start_time as string).split(":").map(Number);
+      const planned = new Date(s.session_date + "T00:00:00+08:00");
+      planned.setHours(hh, mm, 0, 0);
+      const actual = new Date(s.actual_start as string);
+      const diffMin = (actual.getTime() - planned.getTime()) / 60_000;
+      return diffMin <= 5; // includes early starts
+    }).length;
+    const ontimeRate = ontimeBucket.length === 0 ? null : Math.round((ontime / ontimeBucket.length) * 100);
+
+    // Modality match = % of completed sessions where actual modality matched
+    // the scheduled one. Excludes sessions that haven't started or never
+    // declared a modality.
+    const modalityBucket = inWeek.filter((s) => s.actual_modality && s.schedule?.scheduled_modality);
+    const modalityMatch  = modalityBucket.filter((s) => s.actual_modality === s.schedule?.scheduled_modality).length;
+    const modalityRate   = modalityBucket.length === 0 ? null : Math.round((modalityMatch / modalityBucket.length) * 100);
+
+    // Hours logged — sum of duration_minutes for everything that has one.
+    const hoursLogged = inWeek
+      .filter((s) => typeof s.duration_minutes === "number")
+      .reduce((sum, s) => sum + (s.duration_minutes as number) / 60, 0);
+
+    return {
+      todayCount: schedules.length, // schedules state is already today-only
+      held,
+      planned,
+      absent,
+      ontimeRate,
+      modalityRate,
+      hoursLogged,
+      todayLocal,
+    };
+  }, [activity, schedules]);
 
   // The auto-derived "current class" — active session if any; else first scheduled.
   // Kept separate from `currentItem` so the banner-on-new-live logic can
@@ -403,7 +480,7 @@ export default function FacultyDashboard() {
             <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 grid grid-cols-12 gap-4 lg:gap-5 flex-1 lg:min-h-0">
         {/* ── LEFT COLUMN ── */}
         <div className="col-span-12 lg:col-span-4 xl:col-span-3 flex flex-col gap-4 lg:gap-5 lg:min-h-0">
-          <section className="card-surface overflow-hidden lg:flex-1 lg:flex lg:flex-col lg:min-h-0">
+          <section className="card-surface card-primary overflow-hidden lg:flex-1 lg:flex lg:flex-col lg:min-h-0">
             <header className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <div className="flex items-center gap-2 text-[#001c43]">
                 <span className="w-7 h-7 rounded-lg bg-blue-50 text-[#114b9f] flex items-center justify-center">
@@ -421,9 +498,14 @@ export default function FacultyDashboard() {
             </header>
 
             <div className="p-3 flex flex-col gap-2 max-h-[420px] lg:max-h-none lg:flex-1 lg:min-h-0 overflow-y-auto">
-              {loading && Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 skeleton rounded-lg" />)}
+              {loading && Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 skeleton" />)}
               {!loading && items.length === 0 && (
-                <p className="text-center text-[12px] text-slate-400 py-6">No classes scheduled today.</p>
+                <div className="py-6">
+                  <EmptyState
+                    title="Nothing today"
+                    description="Enjoy the day off — your next scheduled class will show up here when it's due."
+                  />
+                </div>
               )}
               {items.map(({ schedule, session }) => {
                 const isCurrent = schedule.id === currentItem?.schedule.id;
@@ -477,15 +559,37 @@ export default function FacultyDashboard() {
             </div>
           </section>
 
-          <section className="card-surface p-5">
+          <section className="card-surface card-primary-solid p-5">
             <div className="flex items-center gap-3">
-              <span className="w-12 h-12 rounded-lg text-white text-sm font-bold flex items-center justify-center shadow-md" style={{ background: "linear-gradient(135deg,#114b9f 0%,#1e3a8a 100%)" }}>
+              <span className="w-12 h-12 rounded-lg text-[#001c43] text-sm font-bold flex items-center justify-center shadow-md bg-white">
                 {(me?.full_name ?? "?").split(" ").map((s) => s[0]).filter(Boolean).slice(0, 2).join("")}
               </span>
               <div className="min-w-0">
-                <p className="text-[13.5px] font-bold text-[#001c43] truncate tracking-tight">{me?.full_name ?? "—"}</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">Faculty ID: {me?.faculty_id ?? "—"}</p>
+                <p className="text-[13.5px] font-bold text-white truncate tracking-tight">{me?.full_name ?? "—"}</p>
+                <p className="text-[11px] text-white/70 mt-0.5">Faculty ID: {me?.faculty_id ?? "—"}</p>
               </div>
+            </div>
+
+            {/* KPI strip — TODAY (count of today's classes), ON-TIME % week
+                to date, ABSENT count week to date. Sits inside the solid
+                navy card so the bright numbers contrast against the dark
+                fill. Each tile gets a thin white/10 separator on the right
+                except the last. */}
+            <div className="mt-4 grid grid-cols-3 rounded-xl overflow-hidden bg-white/5">
+              <ProfileKpiTile
+                label="Today"
+                value={String(weekKpis.todayCount)}
+              />
+              <ProfileKpiTile
+                label="On-time"
+                value={weekKpis.ontimeRate === null ? "—" : `${weekKpis.ontimeRate}%`}
+              />
+              <ProfileKpiTile
+                label="Absent"
+                value={String(weekKpis.absent)}
+                tone={weekKpis.absent > 0 ? "warn" : "default"}
+                last
+              />
             </div>
           </section>
         </div>
@@ -554,24 +658,88 @@ export default function FacultyDashboard() {
               onExtend={() => currentItem.session && openExtension(currentItem.session.id, currentItem.schedule.id)}
               onEnRoute={(mod) => currentItem.session && openEnRoute(currentItem.session.id, currentItem.schedule.id, mod)}
             /> : loading ? <div className="card-surface p-12 skeleton h-72" /> : (
-              <div className="card-surface p-12 text-center text-slate-400 text-sm">No upcoming class today.</div>
+              <div className="card-surface card-neutral p-12 text-center text-slate-400 text-sm">No upcoming class today.</div>
             )}
+
+          {/* "This Week" KPI panel — sits under Check-in. 4 rows + a progress
+              bar so the faculty can see at a glance how their week is
+              tracking. Numbers are null-safe: a "—" is shown when the
+              denominator is zero so we don't render "NaN%". */}
+          <section className="card-surface card-info p-5">
+            <header className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                  </svg>
+                </span>
+                <span className="text-title">This Week</span>
+              </div>
+              <span className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">
+                Week to date
+              </span>
+            </header>
+
+            {/* Classes held vs planned — a tiny progress bar reinforces the
+                ratio so it reads quickly without doing the division. */}
+            <KpiRow label="Classes held">
+              <div className="flex items-center gap-3">
+                <span className="text-[14px] font-bold text-[#001c43] tabular-nums">
+                  {weekKpis.held} <span className="text-slate-400 font-medium">/ {weekKpis.planned || "—"}</span>
+                </span>
+                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden min-w-[60px]">
+                  <div
+                    className="h-full bg-emerald-500 transition-all duration-300"
+                    style={{ width: `${weekKpis.planned > 0 ? Math.min(100, (weekKpis.held / weekKpis.planned) * 100) : 0}%` }}
+                    aria-hidden
+                  />
+                </div>
+              </div>
+            </KpiRow>
+
+            <KpiRow label="Hours logged">
+              <span className="text-[14px] font-bold text-[#001c43] tabular-nums">
+                {weekKpis.hoursLogged.toFixed(1)} <span className="text-slate-400 font-medium text-[12px]">hrs</span>
+              </span>
+            </KpiRow>
+
+            <KpiRow label="On-time rate">
+              <span className={`text-[14px] font-bold tabular-nums ${
+                weekKpis.ontimeRate === null ? "text-slate-400"
+                : weekKpis.ontimeRate >= 90 ? "text-emerald-600"
+                : weekKpis.ontimeRate >= 75 ? "text-[#001c43]"
+                : "text-rose-600"
+              }`}>
+                {weekKpis.ontimeRate === null ? "—" : `${weekKpis.ontimeRate}%`}
+              </span>
+            </KpiRow>
+
+            <KpiRow label="Modality match" last>
+              <span className={`text-[14px] font-bold tabular-nums ${
+                weekKpis.modalityRate === null ? "text-slate-400"
+                : weekKpis.modalityRate === 100 ? "text-emerald-600"
+                : "text-[#001c43]"
+              }`}>
+                {weekKpis.modalityRate === null ? "—" : `${weekKpis.modalityRate}%`}
+              </span>
+            </KpiRow>
+          </section>
         </div>
 
         {/* ── RIGHT COLUMN ── */}
         <div className="col-span-12 lg:col-span-3 flex flex-col gap-4 lg:gap-5 lg:min-h-0">
-          <section className="rounded-lg shadow-md overflow-hidden bg-white border border-slate-200">
+          <section className="card-surface card-danger-solid overflow-hidden">
             <header className="px-5 pt-5 pb-3">
               <div className="flex items-center gap-2.5">
-                <span className="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e50019" strokeWidth="2">
+                <span className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white">
                     <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
                     <path d="M13.73 21a2 2 0 01-3.46 0" />
                   </svg>
                 </span>
-                <span className="text-title text-[#e50019]">Quick Assistance</span>
+                <span className="text-title text-white">Quick Assistance</span>
               </div>
-              <p className="text-[11.5px] mt-0.5 text-slate-500">Immediate support for faculty</p>
+              <p className="text-[11.5px] mt-0.5 text-white/80">Immediate support for faculty</p>
             </header>
             <div className="px-5 pb-5 space-y-2">
               {[
@@ -582,9 +750,9 @@ export default function FacultyDashboard() {
                 <button
                   key={b.label}
                   onClick={() => openAssist(b.target)}
-                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-bold transition-all duration-200 bg-white text-[#e50019] border border-rose-200 hover:bg-rose-50 hover:border-rose-300"
+                  className="w-full inline-flex items-center justify-between gap-2 px-4 py-2.5 min-h-[44px] rounded-xl text-[13px] font-bold transition-all duration-200 bg-white text-[#e50019] border border-white hover:bg-white/95 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-[#e50019]"
                 >
-                  {b.label}
+                  <span>{b.label}</span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <polyline points="9 18 15 12 9 6" />
                   </svg>
@@ -593,8 +761,16 @@ export default function FacultyDashboard() {
             </div>
           </section>
 
+          {/* Network detection — proof-of-connectivity, not geofence. We
+              report what the browser can actually see (online/offline +
+              connection type) and use that to indicate which check-in
+              modalities are reachable right now. Crucially, we DON'T claim
+              "On Campus" / "Off Campus" — that's a geofence decision that
+              requires geolocation we're not asking for here. */}
+          <NetworkStatusCard />
+
           {/* Recent Activity — last 5 sessions (any date), driven by /api/sessions */}
-          <section className="card-surface overflow-hidden lg:flex-1 lg:flex lg:flex-col lg:min-h-0">
+          <section className="card-surface card-info overflow-hidden lg:flex-1 lg:flex lg:flex-col lg:min-h-0">
             <header className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <div className="flex items-center gap-2 text-[#001c43]">
                 <span className="w-7 h-7 rounded-lg bg-blue-50 text-[#114b9f] flex items-center justify-center">
@@ -842,7 +1018,7 @@ function CheckinCard({
   const [pickedModality, setPickedModality] = useState<Modality>(item.schedule.scheduled_modality);
 
   return (
-    <section className="card-surface overflow-hidden">
+    <section className={`card-surface overflow-hidden ${isActive ? "card-success" : "card-primary"}`}>
       <header className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
         <span className="text-overline">Check-in</span>
         <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${
@@ -1128,6 +1304,208 @@ function CameraCapture({
 // Manila is UTC+8, no DST. Returns YYYY-MM-DD in Manila local time. We can't
 // use `lib/utils/date.ts:todayLocal()` directly because that file imports
 // server-only helpers; recomputing here keeps the client bundle small.
+// ─── KPI helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Single row inside the "This Week" KPI card. Two-column flex: label on the
+ * left in the standard `text-overline` style, value-rendering slot on the
+ * right (so each KPI can format its own number/progress/etc).
+ */
+function KpiRow({ label, children, last }: { label: string; children: React.ReactNode; last?: boolean }) {
+  return (
+    <div className={`flex items-center justify-between gap-3 py-2.5 ${last ? "" : "border-b border-slate-100"}`}>
+      <span className="text-overline">{label}</span>
+      <div className="flex-1 flex justify-end items-center min-w-0">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * KPI tile used inside the navy Profile card. Inverts colors (light text on
+ * dark fill) and trims to a tight 3-column strip with hairline white/10
+ * dividers between tiles. `tone="warn"` switches the number to a warm tint
+ * — used only for the Absent count when it's > 0.
+ */
+function ProfileKpiTile({
+  label,
+  value,
+  tone = "default",
+  last,
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "warn";
+  last?: boolean;
+}) {
+  return (
+    <div className={`px-3 py-2.5 text-center ${last ? "" : "border-r border-white/10"}`}>
+      <p className="text-[9.5px] font-bold uppercase tracking-wider text-white/60">{label}</p>
+      <p className={`mt-1 text-[18px] font-bold tabular-nums ${tone === "warn" ? "text-amber-300" : "text-white"}`}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+// ─── Network detection ──────────────────────────────────────────────────────
+
+/**
+ * Read-only network status panel. Drives off `navigator.onLine` (universal)
+ * and the experimental NetworkInformation API (`navigator.connection`,
+ * Chromium-only) for connection type / effective bandwidth class. There is
+ * NO browser API that exposes the connected Wi-Fi SSID or signal strength
+ * — that information is intentionally not in this card.
+ *
+ * We deliberately do not infer "On Campus" from anything we can see. The
+ * card only answers: "Is the device online, and how is the connection?"
+ * Anything geofence-related belongs to a separate WLAN-attestation flow.
+ */
+function NetworkStatusCard() {
+  const [online, setOnline] = useState<boolean>(true);
+  const [hydrated, setHydrated] = useState(false);
+  const [conn, setConn] = useState<{ type?: string; effectiveType?: string; downlink?: number } | null>(null);
+  const [lastChange, setLastChange] = useState<Date>(() => new Date());
+
+  useEffect(() => {
+    setHydrated(true);
+
+    function syncOnline() {
+      setOnline(navigator.onLine);
+      setLastChange(new Date());
+    }
+    syncOnline();
+    window.addEventListener("online", syncOnline);
+    window.addEventListener("offline", syncOnline);
+
+    // NetworkInformation API — present on Chromium, missing on Safari/Firefox.
+    // We swallow the type with `as unknown` because @types/dom doesn't ship a
+    // canonical definition.
+    const nav = navigator as Navigator & {
+      connection?: {
+        type?: string;
+        effectiveType?: string;
+        downlink?: number;
+        addEventListener?: (e: string, cb: () => void) => void;
+        removeEventListener?: (e: string, cb: () => void) => void;
+      };
+    };
+    const c = nav.connection;
+    function syncConn() {
+      if (c) setConn({ type: c.type, effectiveType: c.effectiveType, downlink: c.downlink });
+    }
+    syncConn();
+    c?.addEventListener?.("change", syncConn);
+
+    return () => {
+      window.removeEventListener("online", syncOnline);
+      window.removeEventListener("offline", syncOnline);
+      c?.removeEventListener?.("change", syncConn);
+    };
+  }, []);
+
+  // Don't reveal the online/offline pill until after hydration — server-side
+  // we always render an optimistic "online" so the markup matches the first
+  // client paint.
+  const showOffline = hydrated && !online;
+
+  // Pretty label for the connection type / effective type.
+  let connLabel: string | null = null;
+  if (conn?.type && conn.type !== "unknown") {
+    connLabel = conn.type.charAt(0).toUpperCase() + conn.type.slice(1); // wifi → "Wifi"
+  } else if (conn?.effectiveType) {
+    connLabel = conn.effectiveType.toUpperCase(); // 4g → "4G"
+  }
+
+  return (
+    <section className={`card-surface ${showOffline ? "card-warning" : "card-success"} overflow-hidden`}>
+      <header className="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+        <span className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+          showOffline ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"
+        }`}>
+          {showOffline ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="1" y1="1" x2="23" y2="23" />
+              <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+              <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+              <path d="M10.71 5.05A16 16 0 0 1 22.58 9" />
+              <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+              <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+              <line x1="12" y1="20" x2="12.01" y2="20" />
+            </svg>
+          )}
+        </span>
+        <span className="text-title">Network</span>
+        <span
+          className={`ml-auto text-[10.5px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+            showOffline ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"
+          }`}
+        >
+          {showOffline ? "Offline" : "Online"}
+        </span>
+      </header>
+
+      <div className="px-5 py-4 space-y-2.5">
+        <NetworkRow
+          label="Connection"
+          value={connLabel ?? (showOffline ? "—" : "Unknown")}
+          sub={typeof conn?.downlink === "number" ? `≈ ${conn.downlink.toFixed(1)} Mbps` : undefined}
+        />
+
+        <NetworkRow
+          label="Last change"
+          value={lastChange.toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit" })}
+          sub={hydrated ? "since this page loaded" : undefined}
+        />
+
+        <div className="pt-2 mt-1 border-t border-slate-100">
+          <p className="text-overline mb-2">Check-in readiness</p>
+          <ul className="space-y-1.5">
+            <ModalityReadiness label="Face-to-face" ready={true} note="Camera works offline" />
+            <ModalityReadiness label="Blended"      ready={!showOffline} note={showOffline ? "Needs internet" : "Ready"} />
+            <ModalityReadiness label="Online"       ready={!showOffline} note={showOffline ? "Needs internet" : "Ready"} />
+          </ul>
+        </div>
+
+        <p className="text-[10.5px] text-slate-400 leading-relaxed pt-1">
+          Detected via browser network APIs only. Campus geofence (Wi-Fi SSID match) is not enforced here.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function NetworkRow({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <span className="text-overline">{label}</span>
+      <div className="text-right min-w-0">
+        <p className="text-[13px] font-bold text-[#001c43] truncate">{value}</p>
+        {sub && <p className="text-[10.5px] text-slate-400 truncate">{sub}</p>}
+      </div>
+    </div>
+  );
+}
+
+function ModalityReadiness({ label, ready, note }: { label: string; ready: boolean; note: string }) {
+  return (
+    <li className="flex items-center justify-between text-[12px]">
+      <span className="inline-flex items-center gap-2">
+        <span className={`w-1.5 h-1.5 rounded-full ${ready ? "bg-emerald-500" : "bg-slate-300"}`} aria-hidden />
+        <span className="text-slate-700 font-medium">{label}</span>
+      </span>
+      <span className={`text-[11px] font-medium ${ready ? "text-emerald-700" : "text-slate-400"}`}>
+        {note}
+      </span>
+    </li>
+  );
+}
+
 function manilaDateKey(d: Date): string {
   const ms = d.getTime() + 8 * 60 * 60 * 1000;
   const x = new Date(ms);
@@ -1135,6 +1513,21 @@ function manilaDateKey(d: Date): string {
   const m = String(x.getUTCMonth() + 1).padStart(2, "0");
   const day = String(x.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
+}
+
+/** Local-time Monday at 00:00 of the week containing `d`. */
+function mondayOf(d: Date): Date {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  const day = x.getDay(); // 0=Sun..6=Sat
+  const diff = day === 0 ? -6 : 1 - day;
+  x.setDate(x.getDate() + diff);
+  return x;
+}
+function addDaysLocal(d: Date, n: number): Date {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
 }
 
 // ─── Activity feed helpers ──────────────────────────────────────────────────

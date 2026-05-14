@@ -11,7 +11,8 @@ export default function EmptyState({
 }: {
   title: string;
   description?: string;
-  body?: string; // legacy alias for description
+  /** Legacy alias for `description` — keep for back-compat with older callers. */
+  body?: string;
   action?: ReactNode | ActionConfig;
   icon?: ReactNode;
 }) {
@@ -21,7 +22,7 @@ export default function EmptyState({
       <button
         type="button"
         onClick={(action as ActionConfig).onClick}
-        className="inline-flex items-center px-3 py-1.5 rounded-md bg-slate-900 text-white text-xs font-medium hover:bg-slate-800"
+        className="btn-secondary"
       >
         {(action as ActionConfig).label}
       </button>
@@ -29,13 +30,26 @@ export default function EmptyState({
       (action as ReactNode | undefined)
     );
   return (
-    <div className="border border-dashed border-slate-200 rounded-xl bg-white p-10 text-center">
-      {icon && <div className="mx-auto mb-3 text-slate-400">{icon}</div>}
-      <div className="text-sm font-medium text-slate-900">{title}</div>
-      {desc && (
-        <div className="mt-1 text-xs text-slate-500 max-w-md mx-auto">{desc}</div>
+    <div className="border border-dashed border-slate-200 rounded-2xl bg-white px-6 py-12 sm:py-14 text-center fade-up">
+      {icon ? (
+        <div className="mx-auto mb-4 text-slate-400 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-50">
+          {icon}
+        </div>
+      ) : (
+        // Default illustration: a calm "empty" glyph so the box never looks
+        // accidentally blank when callers omit the icon.
+        <div className="mx-auto mb-4 text-slate-300 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-50">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="3" y="5" width="18" height="14" rx="2" />
+            <path d="M3 10h18" />
+          </svg>
+        </div>
       )}
-      {renderedAction && <div className="mt-4">{renderedAction}</div>}
+      <div className="text-[15px] font-bold text-slate-900 tracking-tight">{title}</div>
+      {desc && (
+        <div className="mt-1.5 text-[13px] text-slate-500 max-w-md mx-auto leading-relaxed">{desc}</div>
+      )}
+      {renderedAction && <div className="mt-5">{renderedAction}</div>}
     </div>
   );
 }

@@ -226,7 +226,7 @@ export default function SchedulePage() {
     <div className="flex-1 flex flex-col fade-up min-h-0">
             <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 flex-1 flex flex-col min-h-0">
         {/* Header card with view toggle and week nav */}
-        <div className="card-surface p-5 lg:p-6">
+        <div className="card-surface card-primary p-5 lg:p-6">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="w-12 h-12 rounded-xl bg-blue-50 text-[#114b9f] flex items-center justify-center shrink-0">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -318,7 +318,7 @@ export default function SchedulePage() {
             { label: "Weekly Hours", value: stats.weekly },
             { label: "Modalities", value: stats.modalities },
           ].map((s) => (
-            <div key={s.label} className="card-surface p-4">
+            <div key={s.label} className="card-surface card-info p-4">
               <p className="text-overline">{s.label}</p>
               <p className="mt-1 text-[14px] font-bold text-[#001c43] truncate">{s.value}</p>
             </div>
@@ -371,8 +371,8 @@ function WeekGrid({
 }) {
   const today = new Date();
   return (
-    <div className="card-surface overflow-hidden flex-1 flex flex-col min-h-0">
-      <div className="grid grid-cols-[64px_repeat(6,1fr)] border-b border-slate-200 bg-slate-50/60">
+    <div className="card-surface card-primary overflow-hidden flex-1 flex flex-col min-h-0">
+      <div className="grid grid-cols-[44px_repeat(6,1fr)] sm:grid-cols-[64px_repeat(6,1fr)] border-b border-slate-200 bg-slate-50/60">
         <div className="p-3 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">GMT+8</div>
         {DAYS.map((d, i) => {
           const dayDate = addDays(weekStart, i);
@@ -396,7 +396,7 @@ function WeekGrid({
 
       <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
         <div
-          className="grid grid-cols-[64px_repeat(6,minmax(140px,1fr))] relative"
+          className="grid grid-cols-[44px_repeat(6,minmax(80px,1fr))] sm:grid-cols-[64px_repeat(6,minmax(140px,1fr))] relative"
           style={{ minHeight: TOTAL_HOURS * HOUR_HEIGHT }}
         >
           <div className="border-r border-slate-200 bg-slate-50/30">
@@ -560,7 +560,7 @@ function ListView({
         const dayDate = addDays(weekStart, i);
         const isToday = sameDate(dayDate, today);
         return (
-          <div key={d.key} className="card-surface p-5 lg:p-6">
+          <div key={d.key} className="card-surface card-primary p-5 lg:p-6">
             <div className="flex items-center gap-3 mb-4">
               <p className={`text-[12px] font-bold uppercase tracking-wider ${isToday ? "text-[#114b9f]" : "text-slate-600"}`}>
                 {d.label}

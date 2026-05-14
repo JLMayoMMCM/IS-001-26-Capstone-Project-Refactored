@@ -250,7 +250,7 @@ export default function FacultyDetailPage() {
     <div className="flex-1 flex flex-col fade-up min-h-0">
       <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 flex-1 flex flex-col min-h-0">
         {/* Breadcrumb + header */}
-        <div className="card-surface p-5 lg:p-6">
+        <div className="card-surface card-primary p-5 lg:p-6">
           <Link href="/ifo/ifo-faculty" className="text-[11px] text-slate-500 hover:text-[#114b9f] inline-flex items-center gap-1 mb-3">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
             All faculty
@@ -322,10 +322,10 @@ export default function FacultyDetailPage() {
         {loading ? (
           <div className="card-surface p-6"><div className="h-[480px] skeleton rounded-lg" /></div>
         ) : schedules.length === 0 ? (
-          <div className="card-surface p-12 text-center text-slate-400 text-sm">No classes for this faculty in the active term.</div>
+          <div className="card-surface card-neutral p-12 text-center text-slate-400 text-sm">No classes for this faculty in the active term.</div>
         ) : (
-          <div className="card-surface overflow-hidden flex-1 flex flex-col min-h-0">
-            <div className="grid grid-cols-[64px_repeat(6,1fr)] border-b border-slate-200 bg-slate-50/60">
+          <div className="card-surface card-primary overflow-hidden flex-1 flex flex-col min-h-0">
+            <div className="grid grid-cols-[44px_repeat(6,1fr)] sm:grid-cols-[64px_repeat(6,1fr)] border-b border-slate-200 bg-slate-50/60">
               <div className="p-3 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">GMT+8</div>
               {DAYS.map((d, i) => {
                 const dayDate = addDays(weekStart, i);
@@ -343,7 +343,7 @@ export default function FacultyDetailPage() {
             </div>
 
             <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
-              <div className="grid grid-cols-[64px_repeat(6,minmax(140px,1fr))] relative" style={{ minHeight: TOTAL_HOURS * HOUR_HEIGHT }}>
+              <div className="grid grid-cols-[44px_repeat(6,minmax(80px,1fr))] sm:grid-cols-[64px_repeat(6,minmax(140px,1fr))] relative" style={{ minHeight: TOTAL_HOURS * HOUR_HEIGHT }}>
                 <div className="border-r border-slate-200 bg-slate-50/30">
                   {Array.from({ length: TOTAL_HOURS }).map((_, i) => {
                     const hour = START_HOUR + i;
@@ -413,7 +413,7 @@ export default function FacultyDetailPage() {
 
         {/* Recent activity — last 8 finished (or otherwise judged) sessions. */}
         {!loading && recent.length > 0 && (
-          <div className="card-surface overflow-hidden">
+          <div className="card-surface card-info overflow-hidden">
             <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
               <p className="text-[12px] font-bold text-slate-600 uppercase tracking-wider">Recent Sessions</p>
               <p className="text-[11px] text-slate-400">{recent.length} most recent</p>

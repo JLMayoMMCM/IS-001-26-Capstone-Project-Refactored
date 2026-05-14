@@ -199,7 +199,7 @@ export default function FacultyLiveCalendarPage() {
   return (
     <div className="flex-1 flex flex-col fade-up min-h-0">
       <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 flex-1 flex flex-col min-h-0">
-        <div className="card-surface p-5 lg:p-6">
+        <div className="card-surface card-primary p-5 lg:p-6">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="w-12 h-12 rounded-xl bg-blue-50 text-[#114b9f] flex items-center justify-center shrink-0">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -397,8 +397,8 @@ function WeekGrid({
 }) {
   const today = new Date();
   return (
-    <div className="card-surface overflow-hidden flex-1 flex flex-col min-h-0">
-      <div className="grid grid-cols-[64px_repeat(6,1fr)] border-b border-slate-200 bg-slate-50/60">
+    <div className="card-surface card-primary overflow-hidden flex-1 flex flex-col min-h-0">
+      <div className="grid grid-cols-[44px_repeat(6,1fr)] sm:grid-cols-[64px_repeat(6,1fr)] border-b border-slate-200 bg-slate-50/60">
         <div className="p-3 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">GMT+8</div>
         {DAYS.map((d, i) => {
           const dayDate = addDays(weekStart, i);
@@ -420,7 +420,7 @@ function WeekGrid({
 
       <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
         <div
-          className="grid grid-cols-[64px_repeat(6,minmax(140px,1fr))] relative"
+          className="grid grid-cols-[44px_repeat(6,minmax(80px,1fr))] sm:grid-cols-[64px_repeat(6,minmax(140px,1fr))] relative"
           style={{ minHeight: TOTAL_HOURS * HOUR_HEIGHT }}
         >
           <div className="border-r border-slate-200 bg-slate-50/30">
@@ -506,7 +506,7 @@ function DayColumn({
 }) {
   const isToday = sameDate(date, new Date());
   return (
-    <div className="card-surface overflow-hidden flex-1 flex flex-col min-h-0">
+    <div className="card-surface card-primary overflow-hidden flex-1 flex flex-col min-h-0">
       <div className="p-4 border-b border-slate-200 bg-slate-50/60 flex items-center justify-between">
         <p className="text-[13px] font-bold text-[#001c43]">
           {date.toLocaleDateString("en-PH", { weekday: "long", month: "long", day: "numeric" })}

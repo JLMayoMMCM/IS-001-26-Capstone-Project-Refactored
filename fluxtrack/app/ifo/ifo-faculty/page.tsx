@@ -100,7 +100,7 @@ export default function FacultyIndexPage() {
   return (
     <div className="flex-1 flex flex-col fade-up min-h-0">
       <div className="px-4 sm:px-6 lg:px-8 pb-6 lg:pb-8 space-y-4 flex-1 flex flex-col min-h-0">
-        <div className="card-surface p-5 lg:p-6">
+        <div className="card-surface card-primary p-5 lg:p-6">
           <div className="flex items-center gap-3 flex-wrap">
             <span className="w-12 h-12 rounded-xl bg-blue-50 text-[#114b9f] flex items-center justify-center shrink-0">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -156,7 +156,7 @@ export default function FacultyIndexPage() {
                 <Link
                   key={f.id}
                   href={`/ifo/ifo-faculty/${f.id}`}
-                  className="card-surface p-5 flex flex-col gap-3 hover:border-slate-300 hover:-translate-y-0.5 transition-all"
+                  className="card-surface lift p-5 flex flex-col gap-3"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-lg bg-blue-100 text-blue-700 font-bold text-[13px] flex items-center justify-center shrink-0">
