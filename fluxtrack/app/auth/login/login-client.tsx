@@ -11,9 +11,8 @@ import {
   type Role,
 } from "@/lib/auth/config";
 import {
-  FULL_LOGO_HORIZONTAL_SRC,
-  FULL_LOGO_SRC,
   LOGIN_BG_SRC,
+  MMCM_X_ASU_LOGO_SRC,
   SHIELD_SRC,
 } from "@/components/brand/logo";
 
@@ -65,14 +64,9 @@ export default function LoginClient({ demoMode }: { demoMode: boolean }) {
           }}
         />
         <div className="relative h-full flex flex-col p-12">
-          <div className="inline-flex self-start items-center bg-white rounded-xl px-4 py-2.5 shadow-md">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={FULL_LOGO_HORIZONTAL_SRC}
-              alt="Mapúa Malayan Colleges Mindanao"
-              style={{ height: 40, width: "auto", display: "block" }}
-            />
-          </div>
+          {/* Top-left MMCM lock-up removed per design — the brand mark now
+              lives on the right-hand sign-in panel only. The hero copy below
+              still anchors to the bottom of the photo. */}
 
           <div className="mt-auto max-w-md space-y-4 text-white drop-shadow-[0_2px_8px_rgba(15,23,42,0.6)]">
             <h1 className="text-4xl font-semibold leading-tight">FluxTrack</h1>
@@ -104,6 +98,18 @@ export default function LoginClient({ demoMode }: { demoMode: boolean }) {
               <div className="text-base font-semibold text-slate-900">FluxTrack</div>
               <div className="text-[10px] uppercase tracking-wide text-slate-500">MMCM</div>
             </div>
+          </div>
+
+          {/* Institutional lock-up — MMCM × ASU partnership logo, centred
+              above the sign-in card. Hidden on mobile (the shield + wordmark
+              header above already covers that surface). */}
+          <div className="hidden lg:flex justify-center mb-8">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={MMCM_X_ASU_LOGO_SRC}
+              alt="Mapúa Malayan Colleges Mindanao × Arizona State University"
+              style={{ height: 200, width: "auto", display: "block" }}
+            />
           </div>
 
           <div className="rounded-2xl bg-white shadow-lg border border-slate-200 overflow-hidden">
@@ -188,11 +194,8 @@ export default function LoginClient({ demoMode }: { demoMode: boolean }) {
             </div>
           </div>
 
-          {/* Wordmark below the card */}
-          <div className="mt-6 flex items-center justify-center gap-2 opacity-70">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={FULL_LOGO_SRC} alt="MMCM" style={{ height: 28, width: "auto" }} />
-          </div>
+          {/* Bottom MMCM wordmark removed per design — the partnership lock-up
+              above the card is now the only institutional mark on this page. */}
         </div>
       </main>
     </div>

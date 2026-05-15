@@ -16,6 +16,9 @@ export const FULL_LOGO_SRC = "/brand/mmcm-logo-full.webp";
 // Horizontal lock-up (shield + Mapúa wordmark side-by-side, white background).
 // Use this on light/white surfaces, or inside a white card on dark imagery.
 export const FULL_LOGO_HORIZONTAL_SRC = "/brand/mmcm-logo_full_horizontal.webp";
+// Partnership lock-up — MMCM × ASU horizontal logo. Used as the institutional
+// header on the login form. PNG-only (no WebP twin exists for this asset).
+export const MMCM_X_ASU_LOGO_SRC = "/brand/MMCM_X_ASU_LOGO_Full-horizontal.png";
 export const LOGIN_BG_SRC = "/brand/login-bg.webp";
 // Intrinsic dimensions of the shield asset (verified with `file`).
 const SHIELD_INTRINSIC = { w: 658, h: 622 };
